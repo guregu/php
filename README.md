@@ -20,3 +20,7 @@ It just runs the WebAssembly version of Trealla Prolog and writes CGI ([RFC 3875
 ### Why?
 
 Why not?
+
+### Is this real?
+
+![phpinfo/0 output](https://user-images.githubusercontent.com/131059/184548144-4903d48c-3c44-48f7-906c-d7c53d75e4c5.png)
