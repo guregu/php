@@ -8,10 +8,10 @@ version = "0.0.0"
 id = "prolog"
 description = "PHP: Prolog Home Page"
 source = "wasm/tpl.wasm"
-files = [{ source = "cgi-bin/", destination = "/"}, { source = "std/", destination = "/std"}]
+files = [{ source = "cgi-bin/", destination = "/"}, { source = "lib/", destination = "/lib"}]
 [component.trigger]
 route = "/..."
 [component.trigger.executor]
 type = "wagi"
-# argv = "tpl -f /std/cgi -f /std/php -f ${SCRIPT_NAME} -g main -- ${ARGS}"
-argv = "tpl -f /std/cgi -f /std/php -g handle(\"${SCRIPT_NAME}\") -- ${ARGS}"
+# TODO: fix --library
+argv = "tpl -f /lib/cgi -f /lib/php -g handle(\"${SCRIPT_NAME}\") -- ${ARGS}"

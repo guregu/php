@@ -38,7 +38,6 @@ write_content_type(MIME) :-
 	format("Content-type: ~w~n~n", [MIME]),
 	assertz(wrote(content_type(MIME))),
 	!.
-
 write_content_type(_) :-
 	wrote(content_type(MIME)),
 	format(stderr, "Error: already wrote content-type (~w)~n", [MIME]),
@@ -49,7 +48,6 @@ write_status(Code) :-
 	format("Status: ~w IDK~n", [Code]),
 	assertz(wrote(status(Code))),
 	!.
-
 write_status(_) :-
 	wrote(status(Code)),
 	format(stderr, "Error: already wrote status (~w)~n", [Code]),
