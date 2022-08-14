@@ -23,4 +23,4 @@ Why not?
 
 ### Is this real?
 
-![phpinfo/0 output](https://user-images.githubusercontent.com/131059/184548144-4903d48c-3c44-48f7-906c-d7c53d75e4c5.png)
+![phpinfo/0 output](https://user-images.githubusercontent.com/131059/184548289-46cca2e2-8bfe-4684-b96a-8f4311f03a4a.png)
