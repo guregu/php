@@ -27,7 +27,7 @@ You can use the `<?php goal ?>` expression to execute Prolog (of course). See th
 
 For example, this renders a table of the current Prolog flags:
 
-```php
+```html
 <h3>Prolog flags</h3>
 <table>
 	<tr><th>Flag</th><th>Value</th></tr>
