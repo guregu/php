@@ -14,4 +14,4 @@ route = "/..."
 [component.trigger.executor]
 type = "wagi"
 # TODO: fix --library
-argv = "tpl -f /lib/cgi -f /lib/php -g handle(\"${SCRIPT_NAME}\") -- ${ARGS}"
+argv = "tpl --library /lib -q -f /lib/cgi -f /lib/php -g handle(\"${SCRIPT_NAME}\") -- ${ARGS}"

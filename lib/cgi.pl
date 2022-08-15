@@ -1,24 +1,61 @@
-:- module(cgi, [env/2, handle/1, html_content/0, text_content/0]).
-:- dynamic(wrote/1).
+:- module(cgi, [env/2, handle/1, html_content/0, text_content/0, query_param/2, write_header/2, write_status/1]).
+:- use_module(library(lists)).
 
-handle(ScriptName) :-
-	file_exists(ScriptName),
-	consult(ScriptName),
+:- dynamic(wrote/1).
+:- dynamic(query_param/2).
+:- initialization(make_params).
+make_params :-
+	current_prolog_flag(argv, Argv),
+	maplist(make_param, Argv).
+make_param(Arg) :-
+	atom_chars(Arg, Cs),
+	split(Cs, '=', Key0, Value0),
+	Key0 \= [],
+	chars_urlenc(Key, Key0, []),
+	chars_urlenc(Value, Value0, []),
+	% read_term_from_atom(Arg, Key=Value, []),
+	assertz(query_param(Key, Value)).
+
+http_error(Status, Msg) :-
+	html_content,
+	write_status(Status),
+	format("<html><h3>error ~w</h3><p>~s~n</p></html>", [Status, Msg]),
+	halt.
+
+handle(ScriptName0) :-
+	% spin rewrites " to '?
+	(  atom(ScriptName0)
+	-> atom_chars(ScriptName0, ScriptName)
+	;  (
+		string(ScriptName0),
+		ScriptName = ScriptName0
+	   )
+	),
+	scriptname_file(ScriptName, File),
+	file_exists(File),
+	consult(File),
 	catch(main, Error, (
-		html_content, write('Error! '), write(Error), nl, nl
+		html_content,
+		maybe_write_status(500),
+		write('Error! '),
+		write(Error),
+		nl
 	)),
 	halt.
 
 handle("/") :-
 	handle("index.pl"),
-	!.
-
-handle(ScriptName) :-
-	\+file_exists(ScriptName),
-	write_status(404),
-	text_content,
-	format("404 not found: ~w", [ScriptName]),
 	halt.
+
+handle(_) :-
+	http_error(404, "not found"),
+	halt.
+
+scriptname_file(Name, File) :-
+	chars_urlenc(File, Name, []).
+	% ( once(phrase(urlencode(File), Name)) -> true
+	% ; http_error(400, "invalid path")
+	% ).
 
 env(server_protocol, Value) :- getenv('SERVER_PROTOCOL', Value).
 env(request_method, Value) :- getenv('REQUEST_METHOD', Value).
@@ -33,25 +70,41 @@ env(remote_user, Value) :- getenv('REMOTE_USER', Value).
 env(remote_ident, Value) :- getenv('REMOTE_IDENT', Value). % unused?
 env(content_type, Value) :- getenv('CONTENT_TYPE', Value).
 
-write_content_type(MIME) :-
-	\+wrote(content_type(_)),
-	format("Content-type: ~w~n~n", [MIME]),
-	assertz(wrote(content_type(MIME))),
+write_header(Header, Value) :-
+	\+wrote(headers),
+	\+wrote(header(Header, _)),
+	% TODO: sanitize
+	format("~a: ~w~n", [Header, Value]),
+	assertz(header(Header, Value)),
 	!.
-write_content_type(_) :-
-	wrote(content_type(MIME)),
-	format(stderr, "Error: already wrote content-type (~w)~n", [MIME]),
+write_header(Header, Value) :-
+	wrote(headers),
+	format(stderr, "Error: already wrote headers! (K: ~w, V: ~w)", [Header, Value]),
+	!.
+write_header(Header, _) :-
+	% TODO: some headers can be sent more than once
+	wrote(header(Header, Old)),
+	format(stderr, "Error: already wrote header ~w! (V: ~w)", [Header, Old]),
 	!.
 
 write_status(Code) :-
-	\+wrote(status(_)),
-	format("Status: ~w IDK~n", [Code]),
-	assertz(wrote(status(Code))),
-	!.
-write_status(_) :-
-	wrote(status(Code)),
-	format(stderr, "Error: already wrote status (~w)~n", [Code]),
-	!.
+	write_header('Status', Code),
+	write_headers.
 
-html_content :- write_content_type('text/html').
-text_content :- write_content_type('text/plain').
+maybe_write_status(Code) :-
+	(  \+wrote(headers)
+	-> write_status(Code)
+	;  true
+	).
+
+write_headers :-
+	\+wrote(headers),
+	nl,
+	assertz(wrote(headers)).
+write_headers :-
+	wrote(headers),
+	format(stderr, "Error: already wrote status headers", []).
+	% throw(error(duplicate_header_write)).
+
+html_content :- write_header('Content-type', 'text/html; charset=utf-8').
+text_content :- write_header('Content-type', 'text/plain; charset=utf-8').
