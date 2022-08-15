@@ -8,7 +8,7 @@ version = "0.0.0"
 id = "prolog"
 description = "PHP: Prolog Home Page"
 source = "wasm/tpl.wasm"
-files = [{ source = "cgi-bin/", destination = "/"}, { source = "lib/", destination = "/lib"}]
+files = [{ source = "cgi-bin/", destination = "/"}, { source = "lib/", destination = "/lib"}, { source = "public_html/", destination = "/public_html"}]
 [component.trigger]
 route = "/..."
 [component.trigger.executor]

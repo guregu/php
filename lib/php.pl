@@ -1,5 +1,31 @@
-:- module(php, [phpinfo/0]).
+:- module(php, [php//1, render/1, phpinfo/0]).
 :- use_module(cgi).
+:- use_module(dcgs).
+
+php([]) --> [].
+php([code(Goal)|Rest]) --> "<?php", whitespace, text(Goal), whitespace, "?>", php(Rest).
+php([text(Text)|T]) --> { dif(Text, []) }, text(Text), php(T).
+text([<, X|T]) --> [<, X], { dif(X, '?') }, text(T).
+text([X|T]) --> [X], { dif(X, '<') }, text(T).
+text([]) --> [].
+whitespace --> " " | [].
+
+render(File) :-
+	read_file_to_string(File, Cs, []),
+	once(phrase(php(Program), Cs)),
+	maplist(exec, Program).
+	% ( setup_call_cleanup(
+	% 	open(F, read, _, [mmap(Cs)]),
+	% 	(write(Cs), phrase(php(Program), Cs)),
+	% 	true
+	% ) -> true ; throw(asjdksadkasdas) ),
+	% maplist(exec, Program),
+	% close(S).
+
+exec(code(Code)) :- read_term_from_chars(Code, Goal, []), call(Goal).
+% exec(code(Code)) :- format("~s", [Code]).
+exec(text([])) :- !.
+exec(text(Text)) :- format("~s", [Text]).
 
 phpinfo :-
 	format("<style>header { padding: 0.5em; background: #bdb0e1; }~n td:first-of-type { background: #dedeff; }~n td:nth-of-type(2) { background: #dfdfdf; }</style>"),
