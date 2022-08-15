@@ -2,17 +2,15 @@
 	<style>header { padding: 0.5em; background: #bdb0e1; } td:first-of-type { background: #dedeff; } td:nth-of-type(2) { background: #dfdfdf; }</style>
 	<header>
 		<h1>phpinfo/0<br>
-			<span style='font-size: 14pt;'>Version: <?php pretty_version(Ver), write(Ver) ?></span>
+			<span style='font-size: 14pt;'>
+				Version: <?php pretty_version(Ver), write(Ver) ?>
+			</span>
 		</h1>
 	</header>
 	<h3>Envrionment</h3>
 	<table>
 		<tr><th>Name</th><th>Value</th></tr>
 	<?php
-		current_prolog_flag(argv, Argv),
-		format("<tr><td>~w</td><td>~w</td></tr>", [argv, Argv]),
-		current_prolog_flag(version_git, GitVer),
-		format("<tr><td>~w</td><td>~w</td></tr>", [version_git, GitVer]),
 		bagof([K, V], env(K, V), Env),
 		maplist(format("<tr><td>~w</td><td>~w</td></tr>"), Env)
 	?>
@@ -21,8 +19,12 @@
 	<table>
 		<tr><th>Flag</th><th>Value</th></tr>
 	<?php
-			bagof([K, V], current_prolog_flag(K, V), Flags),
-			maplist(format("<tr><td>~w</td><td>~w</td></tr>"), Flags)
+		current_prolog_flag(argv, Argv),
+		format("<tr><td>~w</td><td>~w</td></tr>", [argv, Argv]),
+		current_prolog_flag(version_git, GitVer),
+		format("<tr><td>~w</td><td>~w</td></tr>", [version_git, GitVer]),
+		bagof([K, V], current_prolog_flag(K, V), Flags),
+		maplist(format("<tr><td>~w</td><td>~w</td></tr>"), Flags)
 	?>
 	</table>
 	<h3>Query params</h3>

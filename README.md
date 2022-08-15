@@ -15,7 +15,26 @@ It is a retrofuturistic combination of Prolog/CGI and Rust/WebAssembly.
 
 ### How does it work?
 
+#### cgi-bin
+
 It just runs the WebAssembly version of Trealla Prolog and writes CGI ([RFC 3875](https://datatracker.ietf.org/doc/html/rfc3875)) output to stdout.
+
+#### public_html
+
+You can use the `<?php goal ?>` expression to execute Prolog (of course). See the README in the www folder for more info on the file structure.
+
+For example, this renders a table of the current Prolog flags:
+
+```php
+<h3>Prolog flags</h3>
+<table>
+	<tr><th>Flag</th><th>Value</th></tr>
+	<?php
+		bagof([K, V], current_prolog_flag(K, V), Flags),
+		maplist(format("<tr><td>~w</td><td>~w</td></tr>"), Flags)
+	?>
+</table>
+```
 
 ### Why?
 
