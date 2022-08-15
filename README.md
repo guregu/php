@@ -15,9 +15,11 @@ It is a retrofuturistic combination of Prolog/CGI and Rust/WebAssembly.
 
 ### How does it work?
 
+It just runs the WebAssembly version of Trealla Prolog and writes CGI ([RFC 3875](https://datatracker.ietf.org/doc/html/rfc3875)) output to stdout.
+
 #### cgi-bin
 
-It just runs the WebAssembly version of Trealla Prolog and writes CGI ([RFC 3875](https://datatracker.ietf.org/doc/html/rfc3875)) output to stdout.
+Runs the `main/0` predicate from a `.pl` file matching the file path.
 
 #### public_html
 
