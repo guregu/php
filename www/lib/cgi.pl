@@ -6,7 +6,7 @@
 :- initialization(make_params).
 make_params :-
 	current_prolog_flag(argv, Argv),
-	maplist(make_param, Argv).
+	(Argv \= [] -> maplist(make_param, Argv)).
 make_param(Arg) :-
 	atom_chars(Arg, Cs),
 	split(Cs, '=', Key0, Value0),
@@ -32,8 +32,19 @@ handle(ScriptName0) :-
 	   )
 	),
 	scriptname_file(ScriptName, File),
+	catch(handle2(File), Error, (
+		html_content,
+		maybe_write_status(500),
+		write('Error! '),
+		write(Error),
+		nl
+	)).
+
+handle2(File) :-
+	atom_concat(_, '.pl', File),
 	file_exists(File),
 	consult(File),
+	!,
 	catch(main, Error, (
 		html_content,
 		maybe_write_status(500),
@@ -43,16 +54,27 @@ handle(ScriptName0) :-
 	)),
 	halt.
 
-handle("/") :-
-	handle("index.pl"),
+handle2(File) :-
+	atom_concat(_, '.html', File),
+	atom_concat('public_html', File, F1),
+	file_exists(F1),
+	html_content,
+	write_status(200),
+	atom_chars(F1, F2),
+	ignore(render(F2)),
 	halt.
+	
+handle("/") :-
+	handle2('/index.html') ; handle2('/index.pl').
 
-handle(_) :-
+handle(Path) :-
+	format(stderr, "Not found: ~w~n", [Path]),
 	http_error(404, "not found"),
 	halt.
 
 scriptname_file(Name, File) :-
 	chars_urlenc(File, Name, []).
+
 	% ( once(phrase(urlencode(File), Name)) -> true
 	% ; http_error(400, "invalid path")
 	% ).
