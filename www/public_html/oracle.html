@@ -1,0 +1,61 @@
+<!doctype html>
+<html>
+<head>
+	<title>Oracle</title>
+	<style>
+		body { padding: 10px; }
+		article > :nth-child(1):not(:empty)::before { content: "Q: " }
+		article > :nth-child(2):not(:empty)::before { content: "A: " } 
+	</style>
+</head>
+<?
+	eightball("It is certain").
+	eightball("It is decidedly so").
+	eightball("Without a doubt").
+	eightball("Yes, definitely").
+	eightball("You may rely on it").
+	eightball("As I see it, yes").
+	eightball("Most likely").
+	eightball("Outlook good").
+	eightball("Yes").
+	eightball("Signs point to yes").
+	eightball("Reply hazy try again").z
+	eightball("Ask again later").
+	eightball("Better not tell you now").
+	eightball("Cannot predict now").
+	eightball("Concentrate and ask again").
+	eightball("Don't count on it").
+	eightball("My reply is no").
+	eightball("My sources say no").
+	eightball("Outlook not so good").
+	eightball("Very doubtful").
+
+	oracle(Question, Wisdom) :-
+		findall(X, eightball(X), All),
+		length(All, Len),
+		term_hash(Question, Hash),
+		Index is Hash mod Len,
+		nth0(Index, All, Wisdom).
+?>
+<body>
+<h1>Oracle of Facts and Logic</h1>
+
+<main>
+	<form>
+		<input type="text" name="ask" placeholder="ASK ME ANYTHING" value="<?=X query_param(ask, X) ?>"> <input type="submit" value="Ask">
+	</form>
+
+	<article>
+		<h3><?=Ask query_param(ask, Ask) ?></h3>
+		<h3><?=Wisdom query_param(ask, Ask), oracle(Ask, Wisdom) ?></h3>
+	</article>
+</main>
+
+<hr>
+
+<footer>
+powered by <a href="https://github.com/guregu/php">php</a>
+</footer>
+
+</body>
+</html>
