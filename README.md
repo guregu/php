@@ -5,6 +5,10 @@ It is a retrofuturistic combination of Prolog/CGI and Rust/WebAssembly.
 
 **Status**: Absolutely not ready for production, ~~XSS vulnerabilities abound~~. Just experimenting currently.
 
+## Demo 🆕
+
+Head on over to our beautiful homepage at [php.energy](https://php.energy/).
+
 ## Setup
 
 0. ~~Reconsider whether you really want to do this~~.
