@@ -14,3 +14,6 @@ local: wasm/tpl.wasm
 
 watch: wasm/tpl.wasm
 	nodemon --watch cgi-bin --watch www --watch lib --ext pl,html,php --verbose --legacy-watch --signal SIGINT --exec '$(SPINFLAGS) spin up --file $(SPINCFG)'
+
+deploy: wasm/tpl.wasm
+	ssh ubuntu@php.energy 'cd php && git pull && sudo systemctl restart php'

@@ -1,21 +1,26 @@
 # php: Prolog Home Page
 
 This is an experiment using the WebAssembly version of [Trealla Prolog](https://github.com/trealla-prolog/trealla) and [Spin](https://spin.fermyon.dev/) to host websites.
-It is a retrofuturistic combination of Prolog/CGI and Rust/WebAssembly.
+It is a retrofuturistic combination of Prolog/C/CGI and Rust/WebAssembly.
 
 **Status**: Absolutely not ready for production, ~~XSS vulnerabilities abound~~. Just experimenting currently.
 
 ## Demo 🆕
 
-Head on over to our beautiful homepage at [php.energy](https://php.energy/).
+Head on over to our beautiful homepage at [php.energy](https://php.energy/). Source code examples included.
 
 ## Setup
 
 0. ~~Reconsider whether you really want to do this~~.
 1. [Install Spin](https://spin.fermyon.dev/quickstart/).
+  1. For hot reloading, [install nodemon](https://www.npmjs.com/package/nodemon) (optional).
 2. Clone this repo.
-3. Put Prolog scripts in `cgi-bin` just like the old days.
-4. Run server with `make` or `spin up`. Use `make watch` for hot reloading.
+3. Configure the www root in `spin.toml`
+4. Put PHP scripts or Prolog programs in `public_html` or `cgi-bin`.
+
+## Run
+- Run server with `make` or `spin up`.
+- Or use `make watch` for hot reloading.
 
 ## How does it work?
 

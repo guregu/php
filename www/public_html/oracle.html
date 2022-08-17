@@ -4,8 +4,8 @@
 	<title>Oracle</title>
 	<style>
 		body { padding: 10px; }
-		article > :nth-child(1):not(:empty)::before { content: "Q: " }
-		article > :nth-child(2):not(:empty)::before { content: "A: " } 
+		.qa .q:not(:empty)::before { content: "Q: " }
+		.qa .a:not(:empty)::before { content: "A: " }
 	</style>
 </head>
 <?
@@ -34,7 +34,8 @@
 		findall(X, eightball(X), All),
 		length(All, Len),
 		term_hash(Question, Hash),
-		Index is Hash mod Len,
+		date_time(_, M, D, _, _, _),
+		Index is (Hash + M*D) mod Len,
 		nth0(Index, All, Wisdom).
 ?>
 <body>
@@ -47,9 +48,9 @@
 		<input type="submit" value="Ask">
 	</form>
 
-	<article>
-		<h3><?=Ask query_param(ask, Ask) ?></h3>
-		<h3><?=Wisdom query_param(ask, Ask), oracle(Ask, Wisdom) ?></h3>
+	<article class="qa">
+		<h3 class="q"><?=Ask query_param(ask, Ask) ?></h3>
+		<h3 class="a"><?=Wisdom query_param(ask, Ask), oracle(Ask, Wisdom) ?></h3>
 	</article>
 </main>
 
