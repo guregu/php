@@ -32,8 +32,9 @@ handle_file(File) :-
 	atom_concat(_, '.pl', File),
 	file_exists(File),
 	consult(File),
-	!,
+	assertz(current_file(Path)),
 	logf("Handling script file: ~w", [File]),
+	!,
 	catch(main, Error, handle_error(Error)),
 	halt.
 
@@ -41,6 +42,7 @@ handle_file(File) :-
 	atom_concat(_, '.html', File),
 	atom_concat('public_html', File, Path),
 	file_exists(Path),
+	assertz(current_file(Path)),
 	logf("Handling script file: ~w", [File]),
 	!,
 	html_content,

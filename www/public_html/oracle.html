@@ -42,7 +42,9 @@
 
 <main>
 	<form>
-		<input type="text" name="ask" placeholder="ASK ME ANYTHING" value="<?=X query_param(ask, X) ?>"> <input type="submit" value="Ask">
+		<input type="text" name="ask" placeholder="ASK ME ANYTHING"
+		style="width: 80ch;" value="<?=X query_param(ask, X) ?>"> 
+		<input type="submit" value="Ask">
 	</form>
 
 	<article>
@@ -50,6 +52,13 @@
 		<h3><?=Wisdom query_param(ask, Ask), oracle(Ask, Wisdom) ?></h3>
 	</article>
 </main>
+
+<hr>
+
+<section>
+	<h2>Source Code</h2>
+	<pre><?=Source current_file(File), read_file_to_string(File, Source, []) ?></pre>
+</section>
 
 <hr>
 
