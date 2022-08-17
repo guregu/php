@@ -25,6 +25,8 @@ Runs the `main/0` predicate from a `.pl` file matching the file path.
 
 ### public_html
 
+Put PHP templates here and they will show up in your root.
+
 ## Templates
 
 Files ending in `.html` will be interpreted as PHP templates with the following special syntax.
