@@ -30,9 +30,15 @@
 	<h3>Query params</h3>
 	<table>
 		<tr><th>Key</th><th>Value</th></tr>
-	<?php
-		findall([K, V], query_param(K, V), QueryParams),
-		maplist(format("<tr><td>~w</td><td>~w</td></tr>"), QueryParams)
+	<?-
+		findall([K, V], (
+			query_param(K0, V0),
+			atom_chars(K0, K1),
+			atom_chars(V0, V1),
+			html_escape(K1, K),
+			html_escape(V1, V)
+		), QueryParams),
+		maplist(format("<tr><td>~s</td><td>~s</td></tr>"), QueryParams)
 	?>
 	</table>
 </div>
