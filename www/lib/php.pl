@@ -73,6 +73,7 @@ render(File) :-
 	once(phrase(php(Program), Cs)),
 	% write(Program).
 	catch(maplist(exec, Program), Error, (
+		logf("Script error: ~w~n", [Error]),
 		echo "Error: ", echo Error
 	)).
 
@@ -100,7 +101,7 @@ danger_subtitute(>, "&gt;").
 
 echo([]) :- !.
 echo(String) :-
-	must_be(chars, String),
+	can_be(chars, String),
 	html_escape(String, Sanitized),
 	format("~s", [Sanitized]),
 	!.
