@@ -26,13 +26,17 @@ endif
 .PHONY: run watch container deploy
 
 all: run
-run:
-	sh -c '$(SPINFLAGS) spin up --file $(SPINCFG)'
 
-watch:
+build:
+	spin build --file $(SPINCFG)
+
+run: build
+	$(SPINFLAGS) spin up --file $(SPINCFG)
+
+watch: build
 	nodemon --watch cgi-bin --watch www --watch lib --ext pl,html,php --verbose --legacy-watch --signal SIGINT --exec '$(SPINFLAGS) spin up --file $(SPINCFG)'
 
-container:
+container: build
 	nixpacks build . --name php --pkgs wget --install-cmd 'wget -O spin.tar.gz $(SPINBIN) && tar xvf spin.tar.gz' --start-cmd './spin up --file spin.toml'
 
 deploy:
