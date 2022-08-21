@@ -23,17 +23,17 @@ ifndef SPINBIN
 SPINBIN = https://github.com/fermyon/spin/releases/download/$(SPINVER)/spin-$(SPINVER)-$(OS)-$(ARCH).tar.gz
 endif
 
-.PHONY: run watch deploy container
+.PHONY: run watch container deploy
 
 all: run
-run: wasm/tpl.wasm
+run:
 	sh -c '$(SPINFLAGS) spin up --file $(SPINCFG)'
 
-watch: wasm/tpl.wasm
+watch:
 	nodemon --watch cgi-bin --watch www --watch lib --ext pl,html,php --verbose --legacy-watch --signal SIGINT --exec '$(SPINFLAGS) spin up --file $(SPINCFG)'
 
 container:
 	nixpacks build . --name php --pkgs wget --install-cmd 'wget -O spin.tar.gz $(SPINBIN) && tar xvf spin.tar.gz' --start-cmd './spin up --file spin.toml'
 
-deploy: wasm/tpl.wasm
+deploy:
 	ssh ubuntu@php.energy 'cd php && git pull && sudo systemctl restart php'

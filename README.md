@@ -13,11 +13,12 @@ Head on over to our beautiful homepage at [php.energy](https://php.energy/). Sou
 
 0. ~~Reconsider whether you really want to do this~~.
 1. [Install Spin](https://spin.fermyon.dev/quickstart/).
-2. For hot reloading, [install nodemon](https://www.npmjs.com/package/nodemon) (optional).
-3. For building the container image, [install nixpacks](https://nixpacks.com/docs/getting-started).
-2. Clone this repo.
-3. Configure the www root in `spin.toml`
-4. Put PHP scripts or Prolog programs in `public_html` or `cgi-bin`.
+2. [Install WAPM](https://docs.wasmer.io/ecosystem/wasmer/getting-started)
+3. For hot reloading, [install nodemon](https://www.npmjs.com/package/nodemon) (optional).
+4. For building the container image, [install nixpacks](https://nixpacks.com/docs/getting-started).
+5. Clone this repo.
+6. Configure the www root in `spin.toml`
+7. Put PHP scripts or Prolog programs in `public_html` or `cgi-bin`.
 
 ## Run
 - Run server with `make` or `spin up`.

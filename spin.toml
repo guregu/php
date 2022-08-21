@@ -7,11 +7,12 @@ version = "0.0.0"
 [[component]]
 id = "prolog"
 description = "PHP: Prolog Home Page"
-source = "wasm/tpl.wasm"
-#files = [{ source = "cgi-bin/", destination = "/cgi-bin"}, { source = "lib/", destination = "/lib"}, { source = "public_html/", destination = "/public_html"}]
+source = "wapm_packages/guregu/trealla@0.1.7/tpl.wasm"
 files = [{ source = "www/", destination = "/"}]
 [component.trigger]
 route = "/..."
+[component.build]
+command = "wapm install"
 [component.trigger.executor]
 type = "wagi"
 # TODO: fix --library
