@@ -37,7 +37,10 @@ watch: build
 	nodemon --watch cgi-bin --watch www --watch lib --ext pl,html,php --verbose --legacy-watch --signal SIGINT --exec '$(SPINFLAGS) spin up --file $(SPINCFG)'
 
 container: build
-	nixpacks build . --name php --pkgs wget --install-cmd 'wget -O spin.tar.gz $(SPINBIN) && tar xvf spin.tar.gz' --start-cmd './spin up --file spin.toml'
+	nixpacks build . --name php --pkgs wget curl \
+		--install-cmd 'wget -O spin.tar.gz https://github.com/fermyon/spin/releases/download/v0.4.0/spin-v0.4.0-linux-amd64.tar.gz && tar xvf spin.tar.gz && (curl https://get.wasmer.io -sSfL | sh)' \
+		--build-cmd './spin build' \
+		--start-cmd './spin up --file spin.toml'
 
 deploy:
 	ssh ubuntu@php.energy 'cd php && git pull && sudo systemctl restart php'
