@@ -31,7 +31,7 @@
 	<table>
 		<tr><th>Key</th><th>Value</th></tr>
 	<?-
-		findall([K, V], (
+		bagof([K, V], K0^V0^K1^V1^K^V^(
 			query_param(K0, V0),
 			atom_chars(K0, K1),
 			atom_chars(V0, V1),

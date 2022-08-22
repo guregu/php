@@ -78,7 +78,7 @@ render(File) :-
 	)).
 
 prolog_call(:-(Goal)) :- ignore(Goal).
-prolog_call(Goal) :- logf("Asserting: ~w~n", [Goal]), user:assertz(Goal).
+prolog_call(Goal) :- user:assertz(Goal).
 
 phpinfo :- render('lib/phpinfo.html').
 
@@ -100,6 +100,7 @@ danger_subtitute(<, "&lt;").
 danger_subtitute(>, "&gt;").
 
 echo([]) :- !.
+echo('') :- !.
 echo(String) :-
 	can_be(chars, String),
 	html_escape(String, Sanitized),

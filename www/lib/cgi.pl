@@ -4,17 +4,45 @@
 :- dynamic(wrote/1).
 :- dynamic(query_param/2).
 :- initialization(make_params).
+
 make_params :-
+	env(request_method, Method),
+	logf("Method: ~w", [Method]),
+	flush_output(stderr),
+	ignore(make_params(Method)).
+
+make_params('POST') :-
+	% TODO: handle other mime types
+	env(content_length, N),
+	read_len(N, Line),
+	make_post_params(Line),
+	true.
+
+make_post_params(Line) :-
+	( nonvar(Line) -> true ; throw(error(invalid(Line))) ),
+	logf("Parsing POST: ~w~n", [Line]),
+	once(phrase(form(Params), Line)),
+	logf("Post params: ~q~n", [Params]),
+	maplist(assert_param, Params),
+	true.
+
+make_params('GET') :-
 	current_prolog_flag(argv, Argv),
-	(Argv \= [] -> maplist(make_param, Argv) ; true).
-make_param(Arg) :-
+	(Argv \= [] -> maplist(parse_get_param, Argv) ; true).
+make_params(_).
+
+assert_param(K-V) :- assertz(query_param(K, V)).
+
+parse_get_param(Arg) :-
 	atom_chars(Arg, Cs),
 	split(Cs, '=', Key0, Value0),
 	Key0 \= [],
 	chars_urlenc(Key, Key0, []),
-	chars_urlenc(Value, Value0, []),
-	% read_term_from_atom(Arg, Key=Value, []),
-	assertz(query_param(Key, Value)).
+	(  chars_urlenc(Value, Value0, [])
+	-> true
+	;  Value = ''
+	),
+	assert_param(Key-Value).
 
 handle(ScriptName) :-
 	scriptname_file(ScriptName, File),
@@ -32,7 +60,7 @@ handle_file(File) :-
 	atom_concat(_, '.pl', File),
 	file_exists(File),
 	consult(File),
-	assertz(current_file(Path)),
+	assertz(current_file(File)),
 	logf("Handling script file: ~w", [File]),
 	!,
 	catch(main, Error, handle_error(Error)),
@@ -79,6 +107,8 @@ env(auth_type, Value) :- getenv('AUTH_TYPE', Value).
 env(remote_user, Value) :- getenv('REMOTE_USER', Value).
 env(remote_ident, Value) :- getenv('REMOTE_IDENT', Value). % unused?
 env(content_type, Value) :- getenv('CONTENT_TYPE', Value).
+env(content_length, Value) :- getenv('HTTP_CONTENT_LENGTH', N), nonvar(N), atom_chars(N, Ns), number_chars(Value, Ns).
+
 
 write_header(Header, Value) :-
 	\+wrote(headers),
@@ -123,6 +153,24 @@ logf(Fmt, Args) :-
 	date_time(_, _, _, HH, MM, S),
 	format(stderr, "[~|~`0t~w~2+:~|~`0t~w~2+:~`0t~w~2+] ", [HH, MM, S]),
 	format(stderr, Fmt, Args),
-	write(stderr, '\n').
+	write(stderr, '\n'),
+	flush_output(stderr).
 
 debugf(_, _).
+
+form([V|Vs]) --> param(V), params(Vs).
+params([V|Vs]) --> "&", param(V), params(Vs).
+params([]) --> [].
+param(K-V) --> value(K0), "=", value(V0), { atom_chars(K1, K0), chars_urlenc(K, K1, []), atom_chars(V1, V0), chars_urlenc(V, V1, []) }.
+param(K-'') --> value(K0), "=", { atom_chars(K1, K0), chars_urlenc(K, K1, []) }.
+value([V|Vs]) --> { dif(V, '='), dif(V, []) }, [V], value(Vs).
+value([]) --> [].
+
+read_len(Len, Cs) :-
+	read_len_(0, Len, Cs).
+read_len_(N0, Len, [C|Cs]) :-
+	N0 < Len,
+	get_char(C),
+	succ(N0, N),
+	read_len_(N, Len, Cs).
+read_len_(Len, Len, []).
