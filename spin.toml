@@ -7,7 +7,7 @@ version = "0.0.0"
 [[component]]
 id = "prolog"
 description = "PHP: Prolog Home Page"
-source = "wapm_packages/guregu/trealla@0.1.8/tpl.wasm"
+source = "wapm_packages/guregu/trealla@0.1.17/tpl.wasm"
 files = [{ source = "www/", destination = "/"}]
 [component.trigger]
 route = "/..."

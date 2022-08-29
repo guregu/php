@@ -148,6 +148,7 @@ write_headers :-
 
 html_content :- write_header('Content-type', 'text/html; charset=utf-8').
 text_content :- write_header('Content-type', 'text/plain; charset=utf-8').
+json_content :- write_header('Content-type', 'application/json; charset=utf-8').
 
 logf(Fmt, Args) :-
 	date_time(_, _, _, HH, MM, S),
@@ -162,8 +163,7 @@ form([V|Vs]) --> param(V), params(Vs).
 params([V|Vs]) --> "&", param(V), params(Vs).
 params([]) --> [].
 param(K-V) --> value(K0), "=", value(V0), { atom_chars(K1, K0), chars_urlenc(K, K1, []), atom_chars(V1, V0), chars_urlenc(V, V1, []) }.
-param(K-'') --> value(K0), "=", { atom_chars(K1, K0), chars_urlenc(K, K1, []) }.
-value([V|Vs]) --> { dif(V, '='), dif(V, []) }, [V], value(Vs).
+value([V|Vs]) --> { dif(V, =), dif(V, []) }, [V], value(Vs).
 value([]) --> [].
 
 read_len(Len, Cs) :-

@@ -4,7 +4,6 @@
 
 :- op(901, fy, echo).
 
-
 php([H|T]) --> block(H), php(T).
 php([]) --> [].
 
