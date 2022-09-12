@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+<head>
+	<title>Trealla Prolog playground</title>
+</head>
+<body>
+<h2>Trealla playground</h2>
+
+<form onsubmit="return ask(), false;">
+<textarea cols=80 rows=20 id="src">person(socrates).
+mortal(X) :- person(X).</textarea><br>
+<input type="text" placeholder="mortal(Who)." id="query">
+<input type="submit">
+</form>
+
+<pre id="result"></pre>
+
+<section>
+	<ul>
+		<li><a href="https://github.com/trealla-prolog/trealla">trealla prolog</a></li>
+		<li><a href="https://github.com/guregu/trealla-js">trealla-js</a></li>
+	</ul>
+</section>
+
+<footer>
+powered by <a href="https://github.com/trealla-prolog/trealla">trealla prolog</a>
+</footer>
+
+<script>
+function ask() {
+	console.time();
+	pl.query(
+  	document.getElementById("query").value,
+  	document.getElementById("src").value).then((result) => {
+  	  document.getElementById("result").textContent = JSON.stringify(result, null, "  ");
+  })
+  console.timeEnd();
+}
+</script>
+<script type="module">
+import { loadFromWAPM, Prolog } from 'https://esm.sh/trealla';
+
+await loadFromWAPM("0.1.21");
+window.pl = new Prolog();
+</script>
+</body>
+</html>
