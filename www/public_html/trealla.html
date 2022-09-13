@@ -43,12 +43,13 @@ function ask() {
 
 function updateURL() {
 	var url = new URL(document.URL);
-	url.searchParams.set("q", QUERY.value);
 	if (SRC.value.length < 10 * 1024) {
 		url.searchParams.set("src", SRC.value);
 	} else {
 		url.searchParams.delete("src");
 	}
+	url.searchParams.set("q", QUERY.value);
+	url.searchParams.set("x", "0");
 	history.replaceState(QUERY.value, "", url.toString());
 }
 </script>
