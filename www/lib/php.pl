@@ -61,7 +61,7 @@ exec(php([=|Var], Code)) :-
 	),
 	!.
 exec(text(Text)) :-
-	format("~s", [Text]),
+	maplist(write, Text),
 	!.
 exec(X) :-
 	throw(error(unknown_opcode(X))).
@@ -103,7 +103,7 @@ echo('') :- !.
 echo(String) :-
 	can_be(chars, String),
 	html_escape(String, Sanitized),
-	format("~s", [Sanitized]),
+	maplist(write, Sanitized),
 	!.
 echo(X) :-
 	write_term_to_chars(Cs, X, []),

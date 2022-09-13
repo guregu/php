@@ -27,18 +27,19 @@ powered by <a href="https://github.com/trealla-prolog/trealla">trealla prolog</a
 </footer>
 
 <script>
+var QUERY = document.getElementById("query");
+var SRC = document.getElementById("src");
+var RESULT = document.getElementById("result");
 function ask() {
-	console.time();
-	pl.query(
-  	document.getElementById("query").value,
-  	document.getElementById("src").value).then((result) => {
-  	  document.getElementById("result").textContent = JSON.stringify(result, null, "  ");
-  })
-  console.timeEnd();
+	console.time("query");
+	pl.query(QUERY.value, SRC.value).then((result) => {
+		console.timeEnd("query");
+		RESULT.textContent = JSON.stringify(result, null, "  ");
+	});
 }
 </script>
 <script type="module">
-import { loadFromWAPM, Prolog } from 'https://esm.sh/trealla';
+import { loadFromWAPM, Prolog } from 'https://esm.sh/trealla@0.0.2';
 
 await loadFromWAPM("0.1.21");
 window.pl = new Prolog();
