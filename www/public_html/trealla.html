@@ -8,9 +8,9 @@
 
 <form onsubmit="return ask(), false;">
 <textarea cols=80 rows=20 id="src" placeholder="person(socrates).
-mortal(X) :- person(X)."><?=V query_param(src, X), atom_chars(X, Cs), chars_base64(V, Cs, []) ?></textarea><br>
-<input type="text" style="width: 80ch" placeholder="mortal(Who)." value="<?=V query_param(q, X), atom_chars(X, Cs), chars_base64(V, Cs, []) ?>" id="query">
-<input type="submit" value="Query">
+mortal(X) :- person(X)."><?=X query_param(src, X) ?></textarea><br>
+<input type="text" style="width: 80ch" placeholder="mortal(Who)." value="<?=X query_param(q, X) ?>" id="query">
+<input type="submit">
 </form>
 
 <pre id="result"></pre>
@@ -43,17 +43,13 @@ function ask() {
 
 function updateURL() {
 	var url = new URL(document.URL);
-	url.searchParams.set("q", mangle(QUERY.value));
+	url.searchParams.set("q", QUERY.value);
 	if (SRC.value.length < 10 * 1024) {
-		url.searchParams.set("src", mangle(SRC.value));
+		url.searchParams.set("src", SRC.value);
 	} else {
 		url.searchParams.delete("src");
 	}
 	history.replaceState(QUERY.value, "", url.toString());
-}
-
-function mangle(text) {
-	return btoa(text).replaceAll("=", "");
 }
 </script>
 <script type="module">
