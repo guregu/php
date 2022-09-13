@@ -7,15 +7,16 @@
 <h2>Trealla playground</h2>
 
 <form onsubmit="return ask(), false;">
-<textarea cols=80 rows=20 id="src">person(socrates).
-mortal(X) :- person(X).</textarea><br>
-<input type="text" placeholder="mortal(Who)." id="query">
+<textarea cols=80 rows=20 id="src" placeholder="person(socrates).
+mortal(X) :- person(X)."><?=X query_param(src, X) ?></textarea><br>
+<input type="text" style="width: 80ch" placeholder="mortal(Who)." value="<?=X query_param(q, X) ?>" id="query">
 <input type="submit">
 </form>
 
 <pre id="result"></pre>
 
 <section>
+	<h2>more info</h2>
 	<ul>
 		<li><a href="https://github.com/trealla-prolog/trealla">trealla prolog</a></li>
 		<li><a href="https://github.com/guregu/trealla-js">trealla-js</a></li>
@@ -36,6 +37,19 @@ function ask() {
 		console.timeEnd("query");
 		RESULT.textContent = JSON.stringify(result, null, "  ");
 	});
+
+	updateURL();
+}
+
+function updateURL() {
+	var url = new URL(document.URL);
+	url.searchParams.set("q", QUERY.value);
+	if (SRC.value.length < 10 * 1024) {
+		url.searchParams.set("src", SRC.value);
+	} else {
+		url.searchParams.delete("src");
+	}
+	history.replaceState(QUERY.value, "", url.toString());
 }
 </script>
 <script type="module">

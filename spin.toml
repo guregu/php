@@ -16,4 +16,4 @@ command = "wapm install"
 [component.trigger.executor]
 type = "wagi"
 # TODO: fix --library
-argv = "tpl --library /lib -q -f /lib/cgi -f /lib/php --ns -g call_cleanup(handle(\"${SCRIPT_NAME}\"),halt)"
+argv = "tpl --library /lib -q -f /lib/cgi -f /lib/php --ns -g call_cleanup(handle(\"${SCRIPT_NAME}\"),halt) -- ${ARGS}"

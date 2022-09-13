@@ -28,6 +28,7 @@ make_post_params(Line) :-
 
 make_params('GET') :-
 	current_prolog_flag(argv, Argv),
+	logf("Parsing get: ~w~n", [Argv]),
 	(Argv \= [] -> maplist(parse_get_param, Argv) ; true).
 make_params(_).
 
