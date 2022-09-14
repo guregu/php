@@ -37,7 +37,6 @@ function ask() {
 		console.timeEnd("query");
 		RESULT.textContent = JSON.stringify(result, null, "  ");
 	});
-
 	updateURL();
 }
 
@@ -49,14 +48,14 @@ function updateURL() {
 		url.searchParams.delete("src");
 	}
 	url.searchParams.set("q", QUERY.value);
-	url.searchParams.set("x", "0");
+	url.searchParams.set("v", "0");
 	history.replaceState(QUERY.value, "", url.toString());
 }
 </script>
 <script type="module">
-import { loadFromWAPM, Prolog } from 'https://esm.sh/trealla@0.0.2';
+import { loadFromWAPM, Prolog } from 'https://esm.sh/trealla@0.1.0';
 
-await loadFromWAPM("0.1.21");
+await loadFromWAPM("0.1.26");
 window.pl = new Prolog();
 </script>
 </body>
