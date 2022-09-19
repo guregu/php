@@ -5,15 +5,16 @@
 </head>
 <body>
 <h2>Trealla playground</h2>
-
 <form onsubmit="return ask(), false;">
 	<textarea cols=80 rows=20 id="src" placeholder="person(socrates).
 mortal(X) :- person(X)."><?=X query_param(src, X) ?></textarea><br>
-	<input type="text" style="width: 80ch" placeholder="mortal(Who)." value="<?=X query_param(q, X) ?>" id="query" required>
+	<input type="text" style="width: 74ch" placeholder="mortal(Who)." value="<?=X query_param(q, X) ?>" id="query" required>
 	<input type="submit" value="Query" id="query-btn" disabled>
 </form>
 
 <pre id="result"></pre>
+
+<button onclick="return resetProlog(),false;">Reset Interpreter</button>
 
 <section>
 	<h2>more info</h2>
@@ -53,10 +54,13 @@ function updateURL() {
 }
 </script>
 <script type="module">
-import { loadFromWAPM, Prolog } from 'https://esm.sh/trealla@0.2.2';
+import { loadFromWAPM, Prolog } from 'https://esm.sh/trealla@0.3.0';
 
-await loadFromWAPM("0.2.1");
+await loadFromWAPM("0.3.0");
 window.pl = new Prolog();
+window.resetProlog = function() {
+	window.pl = new Prolog();
+}
 document.getElementById("query-btn").removeAttribute("disabled");
 </script>
 </body>
