@@ -5,7 +5,7 @@
 </head>
 <body>
 <h2>Trealla playground</h2>
-<form onsubmit="return ask(), false;">
+<form onsubmit="return ask(), updateURL(), false;">
 	<textarea cols=80 rows=20 id="src" placeholder="person(socrates).
 mortal(X) :- person(X)."><?=X query_param(src, X) ?></textarea><br>
 	<input type="text" style="width: 74ch" placeholder="mortal(Who)." value="<?=X query_param(q, X) ?>" id="query" required>
@@ -32,14 +32,6 @@ powered by <a href="https://github.com/trealla-prolog/trealla">trealla prolog</a
 var QUERY = document.getElementById("query");
 var SRC = document.getElementById("src");
 var RESULT = document.getElementById("result");
-function ask() {
-	console.time("query");
-	pl.query(QUERY.value, SRC.value).then((result) => {
-		console.timeEnd("query");
-		RESULT.textContent = JSON.stringify(result, null, "  ");
-	});
-	updateURL();
-}
 
 function updateURL() {
 	var url = new URL(document.URL);
@@ -53,14 +45,34 @@ function updateURL() {
 	history.replaceState(QUERY.value, "", url.toString());
 }
 </script>
-<script type="module">
-import { loadFromWAPM, Prolog } from 'https://esm.sh/trealla@0.3.3';
 
-await loadFromWAPM("0.3.5");
-window.pl = new Prolog();
+<script type="module">
+import { loadFromWAPM, Prolog } from 'https://esm.sh/trealla@0.4.0';
+
+await loadFromWAPM("0.4.1");
+
+let pl = new Prolog();
+
 window.resetProlog = function() {
-	window.pl = new Prolog();
+	pl = new Prolog();
 }
+
+window.ask = async function ask() {
+	const query = document.getElementById("query");
+	const src = document.getElementById("src");
+	const result = document.getElementById("result");
+	result.textContent = "";
+	console.time("query");
+	let text = "";
+	for await (const msg of pl.query(query.value, src.value)) {
+		console.timeEnd("query");
+		text += JSON.stringify(msg, null, "  ") + "\n";
+		console.time("query");
+	}
+	console.timeEnd("query");
+	result.textContent = text;
+}
+
 document.getElementById("query-btn").removeAttribute("disabled");
 </script>
 </body>
