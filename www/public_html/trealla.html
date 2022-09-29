@@ -64,7 +64,7 @@ window.ask = async function ask() {
 	result.textContent = "";
 	console.time("query");
 	let text = "";
-	for await (const msg of pl.query(query.value, src.value)) {
+	for await (const msg of pl.query(query.value, {program: src.value})) {
 		console.timeEnd("query");
 		text += JSON.stringify(msg, null, "  ") + "\n";
 		console.time("query");
