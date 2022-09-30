@@ -54,7 +54,7 @@ function updateURL() {
 </script>
 
 <script type="module">
-import { loadFromWAPM, Prolog } from 'https://esm.sh/trealla@0.8.1';
+import { loadFromWAPM, Prolog } from 'https://esm.sh/trealla@0.9.0';
 
 await loadFromWAPM("0.7.1");
 
@@ -73,7 +73,8 @@ window.ask = async function ask() {
 	console.time("query");
 	let text = "?- " + query.value + "\n";
 	let n = 0;
-	for await (const msg of pl.query(query.value, {program: src.value, format: format})) {
+	const encode = format == "prolog" ? {dot: false} : undefined;
+	for await (const msg of pl.query(query.value, {program: src.value, format: format, encode: encode})) {
 		console.timeEnd("query");
 		if (typeof msg === "string")
 			text += (n > 0 ? "\n;  " : "   ") + msg.slice(0, -1);
