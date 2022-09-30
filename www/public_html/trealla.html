@@ -10,11 +10,18 @@
 mortal(X) :- person(X)."><?=X query_param(src, X) ?></textarea><br>
 	<input type="text" style="width: 74ch" placeholder="mortal(Who)." value="<?=X query_param(q, X) ?>" id="query" required>
 	<input type="submit" value="Query" id="query-btn" disabled>
+	<style>pre { background-color: #f4f4ff; padding: 0.3em; } pre:empty { display: none; } </style>
 </form>
 
-<pre id="result"></pre>
+<section style="text-align: right;">
+	<button onclick="return resetProlog(),false;">Reset Interpreter</button> <br>
+	<label for="format">format:</label> <select id="format">
+		<option value="prolog" selected>prolog</option>
+		<option value="js">json</option>
+	</select>
+</section>
 
-<button onclick="return resetProlog(),false;">Reset Interpreter</button>
+<pre id="result"></pre>
 
 <section>
 	<h2>more info</h2>
@@ -47,9 +54,9 @@ function updateURL() {
 </script>
 
 <script type="module">
-import { loadFromWAPM, Prolog } from 'https://esm.sh/trealla@0.7.0';
+import { loadFromWAPM, Prolog } from 'https://esm.sh/trealla@0.8.1';
 
-await loadFromWAPM("0.6.0");
+await loadFromWAPM("0.7.1");
 
 let pl = new Prolog();
 
@@ -61,14 +68,21 @@ window.ask = async function ask() {
 	const query = document.getElementById("query");
 	const src = document.getElementById("src");
 	const result = document.getElementById("result");
+	const format = document.getElementById("format").value;
 	result.textContent = "";
 	console.time("query");
-	let text = "";
-	for await (const msg of pl.query(query.value, {program: src.value})) {
+	let text = "?- " + query.value + "\n";
+	let n = 0;
+	for await (const msg of pl.query(query.value, {program: src.value, format: format})) {
 		console.timeEnd("query");
-		text += JSON.stringify(msg, null, "  ") + "\n";
+		if (typeof msg === "string")
+			text += (n > 0 ? "\n;  " : "   ") + msg.slice(0, -1);
+		else
+			text += JSON.stringify(msg, undefined, " ") + "\n";
+		n++;
 		console.time("query");
 	}
+	if (format === "prolog") text += ".";
 	console.timeEnd("query");
 	result.textContent = text;
 }
