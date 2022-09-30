@@ -54,7 +54,7 @@ function updateURL() {
 </script>
 
 <script type="module">
-import { loadFromWAPM, Prolog } from 'https://esm.sh/trealla@0.9.0';
+import { loadFromWAPM, Prolog } from 'https://esm.sh/trealla@0.9.1';
 
 await loadFromWAPM("0.7.1");
 
@@ -77,7 +77,7 @@ window.ask = async function ask() {
 	for await (const msg of pl.query(query.value, {program: src.value, format: format, encode: encode})) {
 		console.timeEnd("query");
 		if (typeof msg === "string")
-			text += (n > 0 ? "\n;  " : "   ") + msg.slice(0, -1);
+			text += (n > 0 ? "\n;  " : "   ") + msg;
 		else
 			text += JSON.stringify(msg, undefined, " ") + "\n";
 		n++;
