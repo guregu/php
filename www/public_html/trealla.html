@@ -48,14 +48,13 @@ powered by <a href="https://github.com/trealla-prolog/trealla">Trealla Prolog</a
 </footer>
 
 <script type="module">
-import { loadFromWAPM, Prolog } from 'https://esm.sh/trealla@0.9.4';
+import { load, Prolog } from 'https://esm.sh/trealla@0.10.0-rc1';
 
 try {
-	loadFromWAPM("0.7.2").then(init);
+	load().then(init);
 } catch(err) {
 	alert(err);
 }
-
 
 let pl = null;
 
