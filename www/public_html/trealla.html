@@ -50,12 +50,28 @@ powered by <a href="https://github.com/trealla-prolog/trealla">Trealla Prolog</a
 <script type="module">
 import { loadFromWAPM, Prolog } from 'https://esm.sh/trealla@0.9.1';
 
-await loadFromWAPM("0.7.2");
+try {
+	loadFromWAPM("0.7.2").then(init);
+} catch(err) {
+	alert(err);
+}
 
-let pl = new Prolog();
+
+let pl = null;
+
+function init() {
+	try {
+		pl = new Prolog();
+	} catch(err) {
+		alert(err);
+		throw err;
+	}
+	document.getElementById("query-btn").removeAttribute("disabled");
+	document.getElementById("query-btn").value = "Query";
+}
 
 window.resetProlog = function() {
-	pl = new Prolog();
+	init();
 }
 
 window.ask = async function ask() {
@@ -103,9 +119,6 @@ window.updateURL = function() {
 	url.searchParams.set("v", "0");
 	history.replaceState(query.value, "", url.toString());
 }
-
-document.getElementById("query-btn").removeAttribute("disabled");
-document.getElementById("query-btn").value = "Query";
 </script>
 </body>
 </html>
