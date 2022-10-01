@@ -4,13 +4,13 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Trealla Prolog playground</title>
 	<style>
-		#src { width: 100%; max-width: 95vw; }
+		#src { width: 100%; max-width: min(95vw, 1200px); }
 		#result { background-color: #f4f4ff; padding: 0.3em; }
 		#result:empty { display: none; }
-		div#prompt { display: flex; gap: 0.3em; }
+		div#prompt { display: flex; gap: 0.3em; width: min(95vw, 1200px) }
 		#prompt input[type=text] { width: 72ch; flex-grow: 1; }
 		#prompt label { min-width: 2ch; }
-		#tinker { padding-top: 0.3em; }
+		#tinker { padding-top: 0.3em; width: min(95vw, 1200px) }
 	</style>
 </head>
 <body>
