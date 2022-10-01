@@ -8,7 +8,7 @@
 <form onsubmit="return ask(), updateURL(), false;">
 	<textarea cols=80 rows=20 id="src" placeholder="person(socrates).
 mortal(X) :- person(X)."><?=X query_param(src, X) ?></textarea><br>
-	<input type="text" style="width: 74ch" placeholder="mortal(Who)." value="<?=X query_param(q, X) ?>" id="query" required>
+	<label for="query">?- </label><input type="text" style="width: 72ch" placeholder="mortal(Who)." value="<?=X query_param(q, X) ?>" id="query" required>
 	<input type="submit" value="Query" id="query-btn" disabled>
 	<style>pre { background-color: #f4f4ff; padding: 0.3em; } pre:empty { display: none; } </style>
 </form>
@@ -65,6 +65,14 @@ window.resetProlog = function() {
 }
 
 window.ask = async function ask() {
+	try {
+		await run()
+	} catch(error) {
+		alert(error);
+	}
+}
+
+async function run() {
 	const query = document.getElementById("query");
 	const src = document.getElementById("src");
 	const result = document.getElementById("result");
