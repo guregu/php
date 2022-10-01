@@ -19,7 +19,7 @@ whitespace --> [X], { atom(X), char_type(X, white) }, (whitespace | []).
 whitespace --> " " | "\n".
 
 clauses(Cs) --> "%", seq(_), "\n", clauses(Cs). % ignore comments
-clauses([C|Cs]) --> seq(Text), ".", { catch(read_term_from_chars(Text, C, []), _, fail) }, clauses(Cs).
+clauses([C|Cs]) --> seq(Text), ".", { catch(read_term_from_chars(C, [], Text), _, fail) }, clauses(Cs).
 clauses([]) --> [].
 
 % <?- ... ?> (query)
@@ -28,12 +28,12 @@ exec(php("-", Code)) :-
 	exec(php("php", Code)),
 	!.
 exec(php("php", Code)) :-
-	read_term_from_chars(Code, Goal, []),
+	read_term_from_chars(Goal, [], Code),
 	ignore(Goal),
 	!.
 % <?* ... ?> (findall)
 exec(php("*", Code)) :-
-	read_term_from_chars(Code, Goal, []),
+	read_term_from_chars(Goal, [], Code),
 	ignore(findall(_, call(Goal), _)),
 	!.
 % <?prolog ... ?> (clauses)
@@ -49,7 +49,7 @@ exec(php([], Code)) :-
 	!.
 % <?=Var ... ?> (echo)
 exec(php([=|Var], Code)) :-
-	read_term_from_chars(Code, Goal, [variable_names(Vars)]),
+	read_term_from_chars(Goal, [variable_names(Vars)], Code),
 	atom_chars(Key, Var),
 	(  member(Key=X, Vars)
 	-> true
@@ -72,7 +72,7 @@ render(File) :-
 	once(phrase(php(Program), Cs)),
 	% write(Program).
 	catch(maplist(exec, Program), Error, (
-		logf("Script error: ~w~n", [Error]),
+		logf("Script error: ~w~nCode: ~w~n", [Error, Program]),
 		echo "Error: ", echo Error
 	)).
 

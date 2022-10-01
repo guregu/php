@@ -50,7 +50,7 @@ handle(ScriptName) :-
 	catch(handle_file(File), Error, handle_error(Error)).
 	
 handle("/") :-
-	handle_file('/index.html') ; handle_file('/index.pl').
+	handle("/index.html") ; handle("/index.pl").
 
 handle(Path) :-
 	format(stderr, "Not found: ~w~n", [Path]),
@@ -58,6 +58,7 @@ handle(Path) :-
 	halt.
 
 handle_file(File) :-
+	logf("F1: ~w", [File]),
 	atom_concat(_, '.pl', File),
 	file_exists(File),
 	consult(File),
@@ -65,9 +66,11 @@ handle_file(File) :-
 	logf("Handling script file: ~w", [File]),
 	!,
 	catch(main, Error, handle_error(Error)),
+	flush_output,
 	halt.
 
 handle_file(File) :-
+	logf("F2: ~w", [File]),
 	atom_concat(_, '.html', File),
 	atom_concat('public_html', File, Path),
 	file_exists(Path),
@@ -77,7 +80,24 @@ handle_file(File) :-
 	html_content,
 	write_status(200),
 	atom_chars(Path, Template),
-	call_cleanup(render(Template), halt).
+	call_cleanup(render(Template), (flush_output, halt)).
+
+handle_file(File) :-
+	logf("Handling static file ~w", [File]),
+	atom_concat('public_html', File, Path),
+	logf("File: ~w", [Path]),
+	!,
+	file_exists(Path),
+	split_atom(Path, '.', '', Split),
+	last(Split, Ext),
+	once(ext_mime(Ext, Mime)),
+	logf("ext: ~w mime: ~w", [Ext, Mime]),
+	mime_content(Mime),
+	write_status(200),
+	read_file_to_string(Path, X, []),
+	'$put_chars'(X),
+	flush_output,
+	halt.
 
 handle_error(Error) :-
 	logf("Error! ~w", [Error]),
@@ -150,6 +170,12 @@ write_headers :-
 html_content :- write_header('Content-type', 'text/html; charset=utf-8').
 text_content :- write_header('Content-type', 'text/plain; charset=utf-8').
 json_content :- write_header('Content-type', 'application/json; charset=utf-8').
+binary_content :- write_header('Content-type', 'application/octet-stream').
+mime_content(Mime) :- write_header('Content-type', Mime).
+
+ext_mime(js, 'application/javascript').
+ext_mime(txt, 'text/plain; charset=utf-8').
+ext_mime(_, 'application/octet-stream').
 
 logf(Fmt, Args) :-
 	date_time(_, _, _, HH, MM, S),
