@@ -17,7 +17,7 @@
 <body>
 <h2>Trealla Playground</h2>
 <form onsubmit="return ask && ask().then(updateURL), false;">
-	<textarea cols=80 rows=20 id="src" placeholder="person(socrates).
+	<textarea cols=80 rows=20 id="src" spellcheck="false" placeholder="person(socrates).
 mortal(X) :- person(X)."><?=X query_param(src, X) ?></textarea><br>
 	<div id="prompt">
 		<label for="query">?- </label><input type="text" placeholder="mortal(Who)." value="<?=X query_param(q, X) ?>" id="query" required>
