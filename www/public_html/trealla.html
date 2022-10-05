@@ -65,6 +65,39 @@ function init() {
 		alert(err);
 		throw err;
 	}
+
+	// TODO: replace with actual code editor
+	let escaping = false;
+	document.getElementById("src").addEventListener("keydown", function(e) {
+		switch (e.key) {
+		case "Escape":
+			escaping = true;
+			break;
+		case "Tab":
+			if (escaping) {
+				escaping = false;
+				break;
+			}
+			e.preventDefault()
+			e.target.setRangeText("\t",	e.target.selectionStart, e.target.selectionStart, "end");
+			break;
+		case "Enter":
+			const caret = e.target.selectionStart;
+			const lineStart = e.target.value.lastIndexOf("\n", caret-1) + 1;
+			const line = e.target.value.slice(lineStart, caret);
+			let ct = 0;
+			if ((line.startsWith("\t") || (line.endsWith(":-") && ++ct) || (line.endsWith("-->") && ++ct)) &&
+				 !line.trim().endsWith(".")) {
+				for (let i = 0; i < line.length && line[i] == "\t"; ct++,i++) {}
+				const tab = "\t".repeat(ct);
+				e.preventDefault();
+				e.target.setRangeText("\n" + tab, e.target.selectionStart, e.target.selectionStart,	"end");
+			}
+		default:
+			escaping = false;
+		}
+	});
+
 	document.getElementById("query-btn").removeAttribute("disabled");
 	document.getElementById("query-btn").value = "Query";
 }
