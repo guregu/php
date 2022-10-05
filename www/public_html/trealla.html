@@ -176,7 +176,7 @@ async function all(id) {
 	const elem = document.getElementById("query-" + id);
 	if (!elem) return;
 	const limit = 10000;
-	for (var i = 0; i <= limit; (i++, await redo(id, elem))) {};
+	for (var i = 0; i <= limit && await redo(id, elem); i++) {};
 	if (i > limit) {
 		elem.querySelector(".query-result").textContent += `\n% paused after ${limit} results`
 	} else {
