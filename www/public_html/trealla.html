@@ -9,13 +9,19 @@
 		#result:empty { display: none; }
 		div#prompt { display: flex; gap: 0.3em; width: min(95vw, 1200px) }
 		#prompt input[type=text] { width: 72ch; flex-grow: 1; }
-		#prompt label { min-width: 2ch; }
+		#prompt label { min-width: 2ch; font-size: 19px; margin-top: auto; }
 		#tinker { padding-top: 0.3em; width: min(95vw, 1200px) }
-		input, textarea, pre { font-size: 16px; tab-size: 4;	}
+		input, textarea, pre { font-size: 16px; tab-size: 4; }
+		pre { margin: 0; }
+		.query-box[data-state="done"] .query-buttons { display: none; }
+		.query-box { background-color: #f4f4ff; padding:0.3em; margin-top:0.3em; border: 1px solid grey; }
+		menu { list-style-type: none; padding-inline: 0; margin-block: 0; margin-top: 0.3em; }
+		menu li { display: inline; }
 	</style>
 </head>
 <body>
 <h2>Trealla Playground</h2>
+<p>Run Prolog in your browser. Press escape then tab to escape the text editor.</p>
 <form onsubmit="return ask && ask().then(updateURL), false;">
 	<textarea cols=80 rows=20 id="src" spellcheck="false" placeholder="person(socrates).
 mortal(X) :- person(X)."><?=X query_param(src, X) ?></textarea><br>
@@ -33,7 +39,22 @@ mortal(X) :- person(X)."><?=X query_param(src, X) ?></textarea><br>
 	<button onclick="return resetProlog(),false;">Reset Interpreter</button> <br>
 </section>
 
+<section id="queries">
+
+</section>
+
 <pre id="result"></pre>
+
+<template id="query-tmpl">
+	<div class="query-box">
+		<pre class="query-result"></pre>
+		<menu class="query-buttons">
+			<li><button class="query-next">Next</button></li>
+			<li><button class="query-all">All</button></li>
+			<li><button class="query-stop">Stop</button></li>
+		</menu>
+	</div>
+</template>
 
 <section>
 	<h2>More Info</h2>
@@ -108,34 +129,99 @@ window.resetProlog = function() {
 
 window.ask = async function ask() {
 	try {
-		await run()
+		await run();
 	} catch(error) {
 		alert(error);
 	}
 }
 
+let ID = 0;
 async function run() {
 	const query = document.getElementById("query");
 	const src = document.getElementById("src");
 	const result = document.getElementById("result");
 	const format = document.getElementById("format").value;
 	result.textContent = "";
-	console.time("query");
 	let text = "?- " + query.value + "\n";
 	let n = 0;
 	const encode = format == "prolog" ? {dot: false} : undefined;
-	for await (const msg of pl.query(query.value, {program: src.value, format: format, encode: encode})) {
-		console.timeEnd("query");
-		if (typeof msg === "string")
-			text += (n > 0 ? "\n;  " : "   ") + msg;
-		else
-			text += JSON.stringify(msg, undefined, " ") + "\n";
-		n++;
-		console.time("query");
+	const q = pl.query(query.value, {program: src.value, format: format, encode: encode});
+	const id = ++ID;
+	QUERIES[id] = q;
+
+	const elem = document.getElementById("query-tmpl").content.cloneNode(true);
+	const box = elem.querySelector(".query-box");
+	box.id = `query-${id}`;
+	box.dataset.format = format;
+	elem.querySelector(".query-result").textContent = "?- " + query.value + "\n";
+	elem.querySelector(".query-next").onclick = next.bind(elem, id);
+	elem.querySelector(".query-all").onclick = all.bind(elem, id);
+	elem.querySelector(".query-stop").onclick = stop.bind(elem, id);
+	document.getElementById("queries").prepend(elem);
+	await next(id);
+}
+
+const QUERIES = {};
+
+async function next(id) {
+	const elem = document.getElementById("query-" + id);
+	if (!elem) return;
+	const ok = await redo(id, elem);
+	if (!ok) {
+		elem.dataset.state = "done";
 	}
-	if (format === "prolog") text += ".";
-	console.timeEnd("query");
-	result.textContent = text;
+}
+
+async function all(id) {
+	const elem = document.getElementById("query-" + id);
+	if (!elem) return;
+	const limit = 10000;
+	for (var i = 0; i <= limit; (i++, await redo(id, elem))) {};
+	if (i > limit) {
+		elem.querySelector(".query-result").textContent += `\n% paused after ${limit} results`
+	} else {
+		elem.dataset.state = "done";
+	}
+}
+
+async function redo(id, elem) {
+	const q = QUERIES[id];
+	if (!q) return false;
+	let result;
+	try {
+		console.time("query");
+		result = (await q.next()).value;
+	} catch(error) {
+		alert(error);
+		return false;
+	} finally {
+		console.timeEnd("query");
+	}
+	const stdout = elem.querySelector(".query-result");
+	if (!result) {
+		delete QUERIES[id];
+		if (elem.dataset.format !== "json")
+			stdout.textContent += ".";
+		return false;
+	}
+	const n = Number(elem.dataset.n ?? 0);
+	if (typeof result === "string")
+		stdout.textContent += (n > 0 ? "\n;  " : "   ") + result;
+	else
+		stdout.textContent += JSON.stringify(result, undefined, " ") + "\n";
+	elem.dataset.n = n+1;
+	return true;
+}
+
+function stop(id) {
+	const elem = document.getElementById("query-" + id);
+	if (!elem) return;
+	const q = QUERIES[id];
+	if (!q) return false;
+	delete QUERIES[id];
+	q.return();
+	elem.querySelector(".query-result").textContent += ".\n% stopped"
+	elem.dataset.state = "done";
 }
 
 window.updateURL = function() {
