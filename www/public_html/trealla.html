@@ -136,9 +136,7 @@ let ID = 0;
 async function run() {
 	const query = document.getElementById("query");
 	const src = document.getElementById("src");
-	const result = document.getElementById("result");
 	const format = document.getElementById("format").value;
-	result.textContent = "";
 	let text = "?- " + query.value + "\n";
 	let n = 0;
 	const encode = format == "prolog" ? {dot: false} : undefined;
