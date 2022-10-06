@@ -39,11 +39,7 @@ mortal(X) :- person(X)."><?=X query_param(src, X) ?></textarea><br>
 	<button onclick="return resetProlog(),false;">Reset Interpreter</button> <br>
 </section>
 
-<section id="queries">
-
-</section>
-
-<pre id="result"></pre>
+<section id="queries"></section>
 
 <template id="query-tmpl">
 	<div class="query-box">
@@ -69,7 +65,7 @@ powered by <a href="https://github.com/trealla-prolog/trealla">Trealla Prolog</a
 </footer>
 
 <script type="module">
-import { load, Prolog } from 'https://esm.sh/trealla@0.11.5';
+import { load, Prolog } from 'https://esm.sh/trealla@0.11.6';
 
 try {
 	load().then(init);
@@ -132,6 +128,7 @@ window.ask = async function ask() {
 		await run();
 	} catch(error) {
 		alert(error);
+		console.error(error);
 	}
 }
 
@@ -193,6 +190,7 @@ async function redo(id, elem) {
 		result = (await q.next()).value;
 	} catch(error) {
 		alert(error);
+		console.error(error);
 		return false;
 	} finally {
 		console.timeEnd("query");
