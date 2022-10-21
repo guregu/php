@@ -11,7 +11,7 @@
 		#prompt input[type=text] { width: 72ch; flex-grow: 1; }
 		#prompt label { min-width: 2ch; font-size: 19px; margin-top: auto; }
 		#tinker { padding-top: 0.3em; width: min(95vw, 1200px) }
-		input, textarea, pre { font-size: 16px; tab-size: 4; }
+		input, textarea, pre { font-size: 16px; tab-size: 4; quotes: "'" "'"; }
 		pre { margin: 0; }
 		.query-box[data-state="done"] .query-buttons { display: none; }
 		.query-box { background-color: #f4f4ff; padding:0.3em; margin-top:0.3em; border: 1px solid grey; }
@@ -27,7 +27,7 @@
 mortal(X) :- person(X)."><?=X query_param(src, X) ?></textarea><br>
 	<div id="prompt">
 		<label for="query">?- </label><input type="text" placeholder="mortal(Who)." value="<?=X query_param(q, X) ?>" id="query" required>
-		<input type="submit" value="Loading..." id="query-btn" disabled>
+		<input type="submit" value="Loading..." id="query-btn" spellcheck="false" disabled>
 	</div>
 </form>
 
