@@ -134,13 +134,13 @@ window.ask = async function ask() {
 
 let ID = 0;
 async function run() {
-	const query = document.getElementById("query");
+	const query = getQuery();
 	const src = document.getElementById("src");
 	const format = document.getElementById("format").value;
-	let text = "?- " + query.value + "\n";
+	let text = "?- " + query + "\n";
 	let n = 0;
 	const encode = format == "prolog" ? {dot: false} : undefined;
-	const q = pl.query(query.value, {program: src.value, format: format, encode: encode});
+	const q = pl.query(query, {program: src.value, format: format, encode: encode});
 	const id = ++ID;
 	QUERIES[id] = q;
 
@@ -148,12 +148,16 @@ async function run() {
 	const box = elem.querySelector(".query-box");
 	box.id = `query-${id}`;
 	box.dataset.format = format;
-	elem.querySelector(".query-result").textContent = "?- " + query.value + "\n";
+	elem.querySelector(".query-result").textContent = "?- " + query + "\n";
 	elem.querySelector(".query-next").onclick = next.bind(elem, id);
 	elem.querySelector(".query-all").onclick = all.bind(elem, id);
 	elem.querySelector(".query-stop").onclick = stop.bind(elem, id);
 	document.getElementById("queries").prepend(elem);
 	await next(id);
+}
+
+function getQuery() {
+	return document.getElementById("query").value.replaceAll(`“`, `"`).replaceAll(`”`, `"`).replaceAll(`‘`, `'`).replaceAll(`’`, `'`);
 }
 
 const QUERIES = {};
