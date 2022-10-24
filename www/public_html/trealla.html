@@ -65,7 +65,7 @@ powered by <a href="https://github.com/trealla-prolog/trealla">Trealla Prolog</a
 </footer>
 
 <script type="module">
-import { load, Prolog, toJSON } from 'https://esm.sh/trealla@0.13.17';
+import { load, Prolog, toJSON } from 'https://esm.sh/trealla@0.13.21';
 
 try {
 	load().then(init);
@@ -135,12 +135,12 @@ window.ask = async function ask() {
 let ID = 0;
 async function run() {
 	const query = getQuery();
-	const src = document.getElementById("src");
+	const src = document.getElementById("src").value;
 	const format = document.getElementById("format").value;
 	let text = "?- " + query + "\n";
 	let n = 0;
 	const encode = format == "prolog" ? {dot: false} : undefined;
-	const q = pl.query(query, {program: src.value, format: format, encode: encode});
+	const q = pl.query(query, {program: src, format: format, encode: encode});
 	const id = ++ID;
 	QUERIES[id] = q;
 
