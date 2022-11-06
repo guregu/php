@@ -3,9 +3,9 @@
 This is an experiment using the WebAssembly version of [Trealla Prolog](https://github.com/trealla-prolog/trealla) and [Spin](https://spin.fermyon.dev/) to host websites.
 It is a retrofuturistic combination of Prolog/C/CGI and Rust/WebAssembly.
 
-**Status**: Absolutely not ready for production, ~~XSS vulnerabilities abound~~. Just experimenting currently.
+**Status**: Slowly approaching stability? Still in cowboy mode. 🤠
 
-## Demo 🆕
+## Demo
 
 Head on over to our beautiful homepage at [php.energy](https://php.energy/). Source code examples included.
 
@@ -21,10 +21,19 @@ Head on over to our beautiful homepage at [php.energy](https://php.energy/). Sou
 7. Put PHP scripts or Prolog programs in `public_html` or `cgi-bin`.
 
 ## Run
+
 - Run server with `make` or `spin up`.
 - Or use `make watch` for hot reloading.
 
-## Build
+## Deploy to ~the cloud~ 🆕
+
+As of recently, you can deploy to the beta version of Fermyon cloud for free. Neat. [More info here](https://www.fermyon.com/blog/introducing-fermyon-cloud).
+
+1. [Get set up](https://developer.fermyon.com/cloud/deploy)
+2. `spin deploy`
+
+## Container Build
+
 1. [Install nixpacks](https://nixpacks.com/docs/getting-started).
 2. Build a Docker container image with `make container`.
 3. See Makefile for settings.
@@ -34,6 +43,15 @@ Head on over to our beautiful homepage at [php.energy](https://php.energy/). Sou
 It just runs the WebAssembly version of Trealla Prolog and writes CGI ([RFC 3875](https://datatracker.ietf.org/doc/html/rfc3875)) output to stdout.
 
 See the README in the www folder for more info on the file structure.
+
+Currently this uses a fork of Trealla hosted on WAPM, but it works with upstream Trealla too.
+
+## What's next?
+
+This currently uses the CGI mode of Spin, but with a little bit of effort we could use the fancy APIs and get outgoing HTTP and Redis and whatnot.
+It'd be cool to get some kind of magic persistence going.
+
+## Library
 
 ### cgi-bin
 
