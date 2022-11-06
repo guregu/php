@@ -30,7 +30,8 @@ Head on over to our beautiful homepage at [php.energy](https://php.energy/). Sou
 As of recently, you can deploy to the beta version of Fermyon cloud for free. Neat. [More info here](https://www.fermyon.com/blog/introducing-fermyon-cloud).
 
 1. [Get set up](https://developer.fermyon.com/cloud/deploy)
-2. `spin deploy`
+2. `spin build`
+3. `spin deploy`
 
 ## Container Build
 
