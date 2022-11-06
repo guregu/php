@@ -8,7 +8,6 @@ php([H|T]) --> block(H), php(T).
 php([]) --> [].
 
 block(php(Head, Text)) --> "<?", seq(Head), whitespace, seq(Text), whitespace, "?>".
-% block(php(Head, Text)) --> "<?", seq(Head), whitespace, seq(Text), whitespace, "?>".
 block(text(Text)) --> text(Text), { Text \= [] }.
 
 text(['<', X|T]) --> ['<', X], { dif(X, '?') }, text(T).
@@ -19,13 +18,10 @@ text("<") --> "<".
 whitespace --> [X], { atom(X), char_type(X, white) }, (whitespace | []).
 whitespace --> " " | "\n" | "\t".
 
-% clauses(Cs) --> "%", seq(_), "\n", clauses(Cs). % ignore comments
+clauses(Cs) --> "%", seq(_), "\n", clauses(Cs). % ignore comments
 clauses([X|Xs]) --> term(X), { X \= end_of_file }, clauses(Xs).
 clauses([]) --> term(end_of_file).
-term(T) --> call(term_, T).
-
-term_(T, Cs0, Cs) :-
-		'$read_term_from_chars'(T, [], Cs0, Cs).
+term(T) --> read_term_from_chars_(T).
 
 % <?- ... ?> (query)
 % <?php ... ?>
@@ -75,7 +71,6 @@ render(File) :-
 	read_file_to_string(File, Cs, []),
 	% write(Cs),
 	once(phrase(php(Program), Cs)),
-	trace,
 	% write(Program).
 	catch(maplist(exec, Program), Error, (
 		logf("Script error: ~w~nCode: ~w~n", [Error, Program]),

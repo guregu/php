@@ -1,0 +1,37 @@
+<html>
+<style>body { background-color: black; color: white; }</style>
+<? 
+julian(Year, Month, Day, JulianDay) :-
+	(  Month < 3 -> M = 12 ;  M = Month ),
+	JulianDay is (1461 * (Year + 4800 + (M - 14)/12))/4 + (367 * (M - 2 - 12 * ((M - 14)/12)))/12 - (3 * ((Year + 4900 + (M - 14)/12)/100))/4 + Day - 32075.
+
+moon_phase(X) :-
+	date_time(Y, M, D, _, _, _),
+	julian(Y, M, D, JD),
+	Moons is (JD - 2451549.5) / 29.53,
+	Point is Moons - floor(Moons),
+	X is Point.
+
+emoji(X, 🌑) :- X < 0.125.
+emoji(X, 🌒) :- X >= 0.125, X < 0.25.
+emoji(X, 🌓) :- X >= 0.25, X < 0.375.
+emoji(X, 🌔) :- X >= 0.375, X < 0.5.
+emoji(X, 🌕) :- X >= 0.5, X < 0.625.
+emoji(X, 🌖) :- X >= 0.625, X < 0.75.
+emoji(X, 🌗) :- X >= 0.75, X < 0.875.
+emoji(X, 🌘) :- X >= 0.875.
+?>
+
+Current moon phase: <br>
+<span style="font-size: 72pt;">
+	<?=Emoji moon_phase(X), once(emoji(X, Emoji)). ?>
+</span>
+
+<br><br><hr><br>
+
+<section>
+	<h2>Source Code</h2>
+	<pre><?=Source current_file(File), read_file_to_string(File, Source, []). ?></pre>
+</section>
+
+</html>
