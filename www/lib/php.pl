@@ -8,6 +8,7 @@ php([H|T]) --> block(H), php(T).
 php([]) --> [].
 
 block(php(Head, Text)) --> "<?", seq(Head), whitespace, seq(Text), whitespace, "?>".
+% block(php(Head, Text)) --> "<?", seq(Head), whitespace, seq(Text), whitespace, "?>".
 block(text(Text)) --> text(Text), { Text \= [] }.
 
 text(['<', X|T]) --> ['<', X], { dif(X, '?') }, text(T).
@@ -16,11 +17,15 @@ text([]) --> [].
 text("<") --> "<".
 
 whitespace --> [X], { atom(X), char_type(X, white) }, (whitespace | []).
-whitespace --> " " | "\n".
+whitespace --> " " | "\n" | "\t".
 
-clauses(Cs) --> "%", seq(_), "\n", clauses(Cs). % ignore comments
-clauses([C|Cs]) --> seq(Text), ".", { catch(read_term_from_chars(C, [], Text), _, fail) }, clauses(Cs).
-clauses([]) --> [].
+% clauses(Cs) --> "%", seq(_), "\n", clauses(Cs). % ignore comments
+clauses([X|Xs]) --> term(X), { X \= end_of_file }, clauses(Xs).
+clauses([]) --> term(end_of_file).
+term(T) --> call(term_, T).
+
+term_(T, Cs0, Cs) :-
+		'$read_term_from_chars'(T, [], Cs0, Cs).
 
 % <?- ... ?> (query)
 % <?php ... ?>
@@ -28,12 +33,12 @@ exec(php("-", Code)) :-
 	exec(php("php", Code)),
 	!.
 exec(php("php", Code)) :-
-	read_term_from_chars(Goal, [], Code),
+	read_term_from_chars(Code, Goal, []),
 	ignore(Goal),
 	!.
 % <?* ... ?> (findall)
 exec(php("*", Code)) :-
-	read_term_from_chars(Goal, [], Code),
+	read_term_from_chars(Code, Goal, []),
 	ignore(findall(_, call(Goal), _)),
 	!.
 % <?prolog ... ?> (clauses)
@@ -49,7 +54,7 @@ exec(php([], Code)) :-
 	!.
 % <?=Var ... ?> (echo)
 exec(php([=|Var], Code)) :-
-	read_term_from_chars(Goal, [variable_names(Vars)], Code),
+	read_term_from_chars(Code, Goal, [variable_names(Vars)]),
 	atom_chars(Key, Var),
 	(  member(Key=X, Vars)
 	-> true
@@ -70,6 +75,7 @@ render(File) :-
 	read_file_to_string(File, Cs, []),
 	% write(Cs),
 	once(phrase(php(Program), Cs)),
+	trace,
 	% write(Program).
 	catch(maplist(exec, Program), Error, (
 		logf("Script error: ~w~nCode: ~w~n", [Error, Program]),
