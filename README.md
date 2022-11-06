@@ -52,7 +52,7 @@ Currently this uses a fork of Trealla hosted on WAPM, but it works with upstream
 This currently uses the CGI mode of Spin, but with a little bit of effort we could use the fancy APIs and get outgoing HTTP and Redis and whatnot.
 It'd be cool to get some kind of magic persistence going.
 
-## Library
+## File Layout
 
 ### cgi-bin
 
