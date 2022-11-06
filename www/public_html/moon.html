@@ -1,5 +1,9 @@
 <html>
-<style>body { background-color: black; color: white; }</style>
+<head>
+	<title>Moon phase calculator... in Prolog!</title>
+	<style>body { background-color: black; color: #ffb000; font-family: monospace; padding: 5px; }</style>
+</head>
+<body>
 <? 
 julian(Year, Month, Day, JulianDay) :-
 	( Month < 3 -> M = 12 ; M = Month ),
@@ -21,16 +25,19 @@ emoji(X, 🌗) :- X >= 0.75, X < 0.875.
 emoji(X, 🌘) :- X >= 0.875.
 ?>
 
-Current moon phase: <br>
-<span style="font-size: 72pt;">
-	<?=Emoji moon_phase(X), emoji(X, Emoji). ?>
-</span>
+<main>
+	<h2>Current moon phase</h2>
+	<div style="font-size: 72pt;">
+		<?=Emoji moon_phase(X), emoji(X, Emoji). ?>
+	</div>
+</main>
 
-<br><br><hr><br>
+<hr>
 
 <section>
 	<h2>Source Code</h2>
 	<pre><?=Source current_file(File), read_file_to_string(File, Source, []). ?></pre>
 </section>
 
+</body>
 </html>
