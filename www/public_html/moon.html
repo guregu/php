@@ -2,14 +2,14 @@
 <style>body { background-color: black; color: white; }</style>
 <? 
 julian(Year, Month, Day, JulianDay) :-
-	(  Month < 3 -> M = 12 ;  M = Month ),
+	( Month < 3 -> M = 12 ; M = Month ),
 	JulianDay is (1461 * (Year + 4800 + (M - 14)/12))/4 + (367 * (M - 2 - 12 * ((M - 14)/12)))/12 - (3 * ((Year + 4900 + (M - 14)/12)/100))/4 + Day - 32075.
 
-moon_phase(Point) :-
+moon_phase(Normal) :-
 	date_time(Y, M, D, _, _, _),
 	julian(Y, M, D, JD),
 	Moons is (JD - 2451549.5) / 29.53,
-	Point is Moons - floor(Moons).
+	Normal is Moons - floor(Moons).
 
 emoji(X, 🌑) :- X < 0.125.
 emoji(X, 🌒) :- X >= 0.125, X < 0.25.
@@ -23,7 +23,7 @@ emoji(X, 🌘) :- X >= 0.875.
 
 Current moon phase: <br>
 <span style="font-size: 72pt;">
-	<?=Emoji moon_phase(X), once(emoji(X, Emoji)). ?>
+	<?=Emoji moon_phase(X), emoji(X, Emoji). ?>
 </span>
 
 <br><br><hr><br>

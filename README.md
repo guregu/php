@@ -25,7 +25,7 @@ Head on over to our beautiful homepage at [php.energy](https://php.energy/). Sou
 - Run server with `make` or `spin up`.
 - Or use `make watch` for hot reloading.
 
-## Deploy to ~the cloud~ 🆕
+## Deploy to \~the cloud\~ 🆕
 
 As of recently, you can deploy to the beta version of Fermyon cloud for free. Neat. [More info here](https://www.fermyon.com/blog/introducing-fermyon-cloud).
 
