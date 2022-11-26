@@ -1,0 +1,65 @@
+<html>
+<head>
+<style>
+body {
+	background: #dde3eb;
+	font-family: "Arial", sans-serif;
+}
+h1 {
+	font-style: italic;
+}
+</style>
+</head>
+<body>
+<h1>So I made this girl quit her job today.</h1>
+<blockquote>
+	<p>I went to a local Mexican restaurant that has $1 tacos for 'Taco Tuesday.' It's a Chipotle style line where you choose hard or soft taco, chicken or beef, and you can add up to three "toppings" from the following: lettuce, salsa, corn, rice and beans, sour cream, or spicy sour cream. I think there were a few others but they are of no use to this story.
+
+	<p>So I walk up to the start of the line and she asks me what I want. I say: "Hi. I'll have six tacos. Three hard and three soft. Three with chicken, and three with beef, but not so that all the chicken or beef are on the same style taco. I'll have any three toppings between lettuce, salsa, rice and beans, sour cream and spicy sour cream such that salsa and any style of sour cream is on all of them and that no two tacos have the exact same contents."
+
+	<p>She looks at my face for a few seconds with a blank stare before saying, "Fuck this" and just walks to the back where the customer can't see, and then like 15 seconds later walks down the hallway and out the door and gets into her car. Then some guy comes out from the back, who I assume is the manager, with a concerned look on his face, apologizes and takes my order. Other employees were really confused.
+
+	<p>Tacos were okay.
+</blockquote>
+<?
+
+shell(hard).
+shell(soft).
+
+meat(chicken).
+meat(beef).
+
+topping(lettuce).
+topping(corn).
+topping(rice_beans).
+
+sour_cream(sour_cream).
+sour_cream(spicy_sour_cream).
+
+taco(Shell, Meat, [salsa, Cream, Other]) :-
+	shell(Shell),
+	meat(Meat),
+	unique([salsa, Cream, Other]),
+	sour_cream(Cream),
+	topping(Other).
+
+tacos(Tacos) :-
+	setof(taco(X, Y, Z), taco(X, Y, Z), Tacos).
+
+unique([X|Xs]) :-
+	maplist(dif(X), Xs),
+	unique(Xs).
+unique([]).
+
+?>
+
+<ol>
+	<?* tacos(X), member(taco(Shell, Meat, Toppings), X), format("<li>~a ~a ~w</li>", [Shell, Meat, Toppings]). ?>
+</ol>
+
+<section>
+	<h2>Source Code</h2>
+	<pre><?=Source current_file(File), read_file_to_string(File, Source, []) ?></pre>
+</section>
+</body>
+</html>
