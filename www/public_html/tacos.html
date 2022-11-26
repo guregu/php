@@ -1,5 +1,6 @@
 <html>
 <head>
+<title>Tacos were okay.</title>
 <style>
 body {
 	background: #dde3eb;
@@ -39,22 +40,16 @@ sour_cream(spicy_sour_cream).
 taco(Shell, Meat, [salsa, Cream, Other]) :-
 	shell(Shell),
 	meat(Meat),
-	unique([salsa, Cream, Other]),
 	sour_cream(Cream),
 	topping(Other).
 
 tacos(Tacos) :-
 	setof(taco(X, Y, Z), taco(X, Y, Z), Tacos).
 
-unique([X|Xs]) :-
-	maplist(dif(X), Xs),
-	unique(Xs).
-unique([]).
-
 ?>
 
 <ol>
-	<?* tacos(X), member(taco(Shell, Meat, Toppings), X), format("<li>~a ~a ~w</li>", [Shell, Meat, Toppings]). ?>
+	<?* tacos(Tacos), member(taco(Shell, Meat, Toppings), Tacos), format("<li>~a ~a ~w</li>", [Shell, Meat, Toppings]). ?>
 </ol>
 
 <section>
