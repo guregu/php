@@ -88,7 +88,7 @@ handle_file(File) :-
 	logf("File: ~w", [Path]),
 	!,
 	file_exists(Path),
-	split_atom(Path, '.', '', Split),
+	split_string(Path, '.', '', Split),
 	last(Split, Ext),
 	once(ext_mime(Ext, Mime)),
 	logf("ext: ~w mime: ~w", [Ext, Mime]),
@@ -175,6 +175,11 @@ mime_content(Mime) :- write_header('Content-type', Mime).
 
 ext_mime(js, 'application/javascript').
 ext_mime(txt, 'text/plain; charset=utf-8').
+ext_mime(png, 'image/png').
+ext_mime(gif, 'image/gif').
+ext_mime(jpeg, 'image/jpeg').
+ext_mime(jpg, 'image/jpeg').
+
 ext_mime(_, 'application/octet-stream').
 
 logf(Fmt, Args) :-
