@@ -66,34 +66,41 @@ Put PHP templates here and they will show up in your root.
 
 Files ending in `.html` will be interpreted as PHP templates with the following special syntax.
 
-### Queries: `<?- Goal ?>`
+### Queries: `<?- Goal. ?>`
 ```prolog
 <?- current_prolog_flag(version, Ver), write(Ver) ?>
 <?php ... ?>
 ```
 
-You can use the `<?php goal ?>` expression to execute Prolog (of course). 
+You can use the `<?- Goal. ?>` (alias: `<?php Goal. ?>`) expression to execute Prolog (of course). 
 
-For example, this renders a table of the current Prolog flags:
+By default, all output from these blocks will be escaped to avoid XSS attacks. You can also use unsafe queries, see below.
+
+#### Unsafe queries: `<?unsafe Goal. ?>`
+
+You can use the `<?unsafe Goal. ?>` expression to execute Prolog code without escaping its output (dangerous!).
+Avoid using this if you can.
+
+For example, this renders a table of the numbers 1-10 and their squares:
 
 ```html
-<h3>Prolog flags</h3>
+<h3>Math</h3>
 <table>
-	<tr><th>Flag</th><th>Value</th></tr>
-	<?php
-		bagof([K, V], current_prolog_flag(K, V), Flags),
+	<tr><th>N</th><th>N²</th></tr>
+	<?unsafe
+		bagof([N, Square], (between(1, 10, N), Square is N^2)), Flags),
 		maplist(format("<tr><td>~w</td><td>~w</td></tr>"), Flags)
 	?>
 </table>
 ```
 
-#### findall: `<?* Goal ?>`
+#### findall: `<?* Goal. ?>`
 ```prolog
 <?* member(X, [1, 2, 3]) ?>
 ```
 Works the same as query, but findall behavior instead of once behavior.
 
-#### Echo: `<?=Var Goal ?>`
+#### Echo: `<?=Var Goal. ?>`
 ```html
 1+1 = <?=X X is 1+1 ?>
 <input type="text" name="ask" value="<?=Param query_param(ask, Param) ?>">
@@ -112,7 +119,8 @@ good_enough(X) :- between(1, 640, X).
 :- echo "hello!".
 :- succ(68, X), write(X).
 ?>
-<?prolog ... ?>
+
+The web framework of the future is <?=Framework best_web_framework(Framework). ?>
 ```
 
 Assert facts and rules as if consulting a Prolog program. Directive syntax will call the given goal.

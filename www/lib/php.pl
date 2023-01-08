@@ -1,4 +1,4 @@
-:- module(php, [php//1, render/1, phpinfo/0, pretty_version/1, echo/1, htmlspecialchars//1, html_escape/2]).
+:- module(php, [php//1, render/1, phpinfo/0, pretty_version/1, echo/1, htmlspecialchars//1, html_escape/2, op(901, fy, echo)]).
 :- use_module(cgi).
 :- use_module(dcgs).
 
@@ -23,33 +23,47 @@ clauses([X|Xs]) --> term(X), { X \= end_of_file }, clauses(Xs).
 clauses([]) --> term(end_of_file).
 term(T) --> read_term_from_chars_(T).
 
+exec(Block) :-
+	\+unsafe_block(Block),
+	'$capture_output',
+	ignore(exec_(Block)),
+	'$capture_output_to_chars'(Cs),
+	ignore(echo(Cs)), % escapes output
+	!.
+exec(Block) :-
+	unsafe_block(Block),
+	ignore(exec_(Block)).
+
 % <?- ... ?> (query)
 % <?php ... ?>
-exec(php("-", Code)) :-
-	exec(php("php", Code)),
+exec_(php("-", Code)) :-
+	exec_(php("php", Code)),
 	!.
-exec(php("php", Code)) :-
+exec_(php("php", Code)) :-
 	read_term_from_chars(Code, Goal, []),
 	ignore(Goal),
 	!.
+exec_(php("unsafe", Code)) :-
+	exec_(php("php", Code)),
+	!.
 % <?* ... ?> (findall)
-exec(php("*", Code)) :-
+exec_(php("*", Code)) :-
 	read_term_from_chars(Code, Goal, []),
 	ignore(findall(_, call(Goal), _)),
 	!.
 % <?prolog ... ?> (clauses)
 % <? ... ?>
-exec(php("prolog", Code)) :-
+exec_(php("prolog", Code)) :-
 	( once(phrase(clauses(Cs), Code))
 	; throw(error(invalid_template(prolog, Code)))
 	),
 	ignore(maplist(prolog_call, Cs)),
 	!.
-exec(php([], Code)) :-
-	exec(php("prolog", Code)),
+exec_(php([], Code)) :-
+	exec_(php("prolog", Code)),
 	!.
 % <?=Var ... ?> (echo)
-exec(php([=|Var], Code)) :-
+exec_(php([=|Var], Code)) :-
 	read_term_from_chars(Code, Goal, [variable_names(Vars)]),
 	atom_chars(Key, Var),
 	(  member(Key=X, Vars)
@@ -57,15 +71,18 @@ exec(php([=|Var], Code)) :-
 	;  throw(error(var_not_found(var(Key), goal(Goal))))
 	),
 	(  call(Goal)
-	-> echo(X)
+	-> echo_unsafe(X)
 	;  true
 	),
 	!.
-exec(text(Text)) :-
+exec_(text(Text)) :-
 	'$put_chars'(Text),
 	!.
-exec(X) :-
-	throw(error(unknown_opcode(X))).
+exec_(X) :-
+	throw(error(unknown_block(X))).
+
+unsafe_block(text(_)).
+unsafe_block(php("unsafe", _)).
 
 render(File) :-
 	read_file_to_string(File, Cs, []),
@@ -77,7 +94,7 @@ render(File) :-
 		echo "Error: ", echo Error
 	)).
 
-prolog_call(:-(Goal)) :- ignore(Goal).
+prolog_call(':-'(Goal)) :- ignore(Goal).
 prolog_call(Goal) :- user:assertz(Goal).
 
 phpinfo :- render('lib/phpinfo.html').
@@ -88,21 +105,21 @@ pretty_version(Version) :-
 	atomic_list_concat([Head, Min, Patch], '.', Version).
 
 htmlspecialchars([]) --> [].
-htmlspecialchars([C|Cs]) --> { danger_subtitute(C, Sub) }, Sub, htmlspecialchars(Cs).
-htmlspecialchars([C|Cs]) --> { \+danger_subtitute(C, _) }, [C], htmlspecialchars(Cs).
+htmlspecialchars([C|Cs]) --> { danger_substitute(C, Sub) }, Sub, htmlspecialchars(Cs).
+htmlspecialchars([C|Cs]) --> { \+danger_substitute(C, _) }, [C], htmlspecialchars(Cs).
 
 html_escape(Raw, Sanitized) :- once(phrase(htmlspecialchars(Raw), Sanitized)).
 
-danger_subtitute(&, "&amp;").
-danger_subtitute('"', "&quot;").
-danger_subtitute('\'', "&apos;").
-danger_subtitute(<, "&lt;").
-danger_subtitute(>, "&gt;").
+danger_substitute(&, "&amp;").
+danger_substitute('"', "&quot;").
+danger_substitute('\'', "&apos;").
+danger_substitute(<, "&lt;").
+danger_substitute(>, "&gt;").
 
 echo([]) :- !.
 echo('') :- !.
 echo(String) :-
-	can_be(chars, String),
+	string(String),
 	html_escape(String, Sanitized),
 	'$put_chars'(Sanitized),
 	!.
@@ -111,3 +128,13 @@ echo(X) :-
 	echo(Cs),
 	!.
 	
+echo_unsafe([]) :- !.
+echo_unsafe('') :- !.
+echo_unsafe(String) :-
+	string(String),
+	'$put_chars'(String),
+	!.
+echo_unsafe(X) :-
+	write_term_to_chars(X, [], Cs),
+	echo_unsafe(Cs),
+	!.

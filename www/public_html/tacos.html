@@ -9,6 +9,9 @@ body {
 h1 {
 	font-style: italic;
 }
+figcaption {
+	text-align: right;
+}
 </style>
 </head>
 <body>
@@ -21,6 +24,8 @@ h1 {
 	<p>She looks at my face for a few seconds with a blank stare before saying, "Fuck this" and just walks to the back where the customer can't see, and then like 15 seconds later walks down the hallway and out the door and gets into her car. Then some guy comes out from the back, who I assume is the manager, with a concerned look on his face, apologizes and takes my order. Other employees were really confused.
 
 	<p>Tacos were okay.
+
+	<figcaption><cite>— some guy on an internet forum long ago</cite></figcaption>
 </blockquote>
 <?
 
@@ -49,7 +54,8 @@ tacos(Tacos) :-
 ?>
 
 <ol>
-	<?* tacos(Tacos), member(taco(Shell, Meat, Toppings), Tacos), format("<li>~a ~a ~w</li>", [Shell, Meat, Toppings]). ?>
+	<!-- TODO: make this less horrible -->
+	<?unsafe findall(_, (tacos(Tacos), member(taco(Shell, Meat, Toppings), Tacos), format("<li>~a ~a ~w</li>", [Shell, Meat, Toppings])), _). ?>
 </ol>
 
 <section>

@@ -2,12 +2,12 @@ spin_version = "1"
 name = "prolog-php"
 description = "Prolog Home Page"
 trigger = { type = "http", base = "/" }
-version = "0.2.1"
+version = "0.3.0"
 
 [[component]]
 id = "prolog"
 description = "PHP: Prolog Home Page"
-source = "wapm_packages/guregu/trealla@0.11.26/tpl.wasm"
+source = "wapm_packages/guregu/trealla@0.11.27/tpl.wasm"
 files = [{ source = "www/", destination = "/"}]
 [component.trigger]
 route = "/..."
