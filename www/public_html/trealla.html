@@ -4,6 +4,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Trealla Prolog playground</title>
 	<style>
+		body { padding: 10px; }
 		#src { width: 100%; max-width: min(95vw, 1200px); }
 		#result { background-color: #f4f4ff; padding: 0.3em; white-space: pre-wrap; }
 		#result:empty { display: none; }
@@ -11,12 +12,14 @@
 		#prompt input[type=text] { width: 72ch; flex-grow: 1; }
 		#prompt label { min-width: 2ch; font-size: 19px; margin-top: auto; }
 		#tinker { padding-top: 0.3em; width: min(95vw, 1200px) }
+		#tinker > * { margin-bottom: 5px; }
 		input, textarea, pre { font-size: 16px; tab-size: 4; quotes: "'" "'"; }
 		pre { margin: 0; }
 		.query-box[data-state="done"] .query-buttons { display: none; }
 		.query-box { background-color: #f4f4ff; padding:0.3em; margin-top:0.3em; border: 1px solid grey; }
 		menu { list-style-type: none; padding-inline: 0; margin-block: 0; margin-top: 0.3em; }
 		menu li { display: inline; }
+		img { max-width: 100%; }
 	</style>
 </head>
 <body>
@@ -36,6 +39,7 @@ mortal(X) :- person(X)."><?=X query_param(src, X) ?></textarea><br>
 		<option value="prolog" selected>prolog</option>
 		<option value="json">json</option>
 	</select>
+	<br>
 	<button onclick="return resetProlog(),false;">Reset Interpreter</button> <br>
 </section>
 
@@ -67,7 +71,7 @@ powered by <a href="https://github.com/trealla-prolog/trealla">Trealla Prolog</a
 </footer>
 
 <script type="module">
-import { load, Prolog, toJSON } from 'https://esm.sh/trealla@0.13.40';
+import { load, Prolog, toJSON } from 'https://esm.sh/trealla@0.13.42?target=es2018';
 
 try {
 	load().then(init);

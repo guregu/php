@@ -69,7 +69,7 @@ exec(Vars, Block) :-
 	ignore(exec_(Vars, Block)).
 
 exec_flush :-
-	catch(nb_getval(capture, safe), error(existence_error(_, _), _), fail),
+	nb_current(capture, safe),
 	'$capture_output_to_chars'(Cs),
 	ignore(echo(Cs)),
 	nb_delete(capture),
@@ -110,9 +110,9 @@ exec_(Vars, php([], Code)) :-
 exec_(Vars0, php([=|Var], Code)) :-
 	Code \= [],
 	read_term_from_chars(Code, Goal, [variable_names(Vars1)]),
-	merge_vars(Vars0, Vars1, _),
+	merge_vars(Vars0, Vars1, Vars),
 	atom_chars(Key, Var),
-	(  ( member(Key=X, Vars1) ; member(Key=X, Vars0) )
+	(  memberchk(Key=X, Vars)
 	-> true
 	;  throw(error(var_not_found(var(Key), goal(Goal))))
 	),

@@ -3,12 +3,12 @@
 		<title>PHP: Prolog Home Page</title>
 	</head>
 	<body>
-	<marquee style='font-size: 10vw;' scrollamount=10>
+	<marquee style='font-size: 10vh;' scrollamount=10>
 		<i>PHP: Web Framework Of The Future</i>
 		<br>
 		powered by
 		<!-- wow!! -->
-		<?php pretty_version(Ver), write(Ver) ?> 
+		<?php current_prolog_flag(dialect, Dialect), write(Dialect). ?> prolog
 	</marquee>
 
 	<h2>
@@ -35,7 +35,7 @@
 
 	<section>
 		<h3>Trealla Prolog playground</h3>
-		<p>✨&nbsp;Run <a href="trealla.html">Trealla straight from your browser</a>!</p>
+		<p>✨ Run <a href="trealla.html">Trealla straight from your browser</a>!</p>
 	</section>
 
 	<h3>USER TESTIMONIALS</h3>
