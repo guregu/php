@@ -49,8 +49,8 @@
 	</form>
 
 	<article class="qa">
-		<h3 class="q"><?=Ask query_param(ask, Ask) ?></h3>
-		<h3 class="a"><?=Wisdom query_param(ask, Ask), oracle(Ask, Wisdom) ?></h3>
+		<h3 class="q"><?=Ask query_param(ask, Ask). ?></h3>
+		<h3 class="a"><?=Wisdom query_param(ask, Ask), oracle(Ask, Wisdom). ?></h3>
 	</article>
 </main>
 
@@ -58,7 +58,7 @@
 
 <section>
 	<h2>Source Code</h2>
-	<pre><?=Source current_file(File), read_file_to_string(File, Source, []) ?></pre>
+	<pre><?=Source current_file(File), read_file_to_string(File, Source, []). ?></pre>
 </section>
 
 <hr>

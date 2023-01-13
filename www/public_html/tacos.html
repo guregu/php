@@ -54,8 +54,9 @@ tacos(Tacos) :-
 ?>
 
 <ol>
-	<!-- TODO: make this less horrible -->
-	<?unsafe findall(_, (tacos(Tacos), member(taco(Shell, Meat, Toppings), Tacos), format("<li>~a ~a ~w</li>", [Shell, Meat, Toppings])), _). ?>
+	<?findall tacos(Tacos), member(taco(Shell, Meat, Toppings), Tacos). ?>
+		<li><?=Shell ?> shell <?=Meat ?> <?=Toppings ?></li>
+	<?end ?>
 </ol>
 
 <section>

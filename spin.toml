@@ -2,7 +2,7 @@ spin_version = "1"
 name = "prolog-php"
 description = "Prolog Home Page"
 trigger = { type = "http", base = "/" }
-version = "0.3.0"
+version = "0.4.0"
 
 [[component]]
 id = "prolog"

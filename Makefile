@@ -23,7 +23,7 @@ ifndef SPINBIN
 SPINBIN = https://github.com/fermyon/spin/releases/download/$(SPINVER)/spin-$(SPINVER)-$(OS)-$(ARCH).tar.gz
 endif
 
-.PHONY: run watch container deploy
+.PHONY: run watch container
 
 all: run
 

@@ -94,15 +94,36 @@ For example, this renders a table of the numbers 1-10 and their squares:
 </table>
 ```
 
-#### findall: `<?* Goal. ?>`
-```prolog
-<?* member(X, [1, 2, 3]) ?>
+#### if block: `<?if Goal. ?> ... <?end ?>`
+```html
+<?if current_prolog_flag(dialect, X). ?>
+	You are using: <?=X ?>
+<?end ?>
 ```
+
+Conditionally executes the block if Goal succeeds. Only runs once.
+
+#### findall block: `<?findall Goal. ?> ... <?end ?>`
+```html
+<table>
+<?findall current_prolog_flag(Key, Value). ?>
+	<tr><td><?=Key ?></td><td><?=Value ?></td></tr>
+<?end ?>
+</table>
+```
+
+Works like if blocks, but with findall behavior.
+
+#### findall query: `<?* Goal. ?>`
+```prolog
+<?* member(X, [1, 2, 3]), write(X). ?>
+```
+
 Works the same as query, but findall behavior instead of once behavior.
 
 #### Echo: `<?=Var Goal. ?>`
 ```html
-1+1 = <?=X X is 1+1 ?>
+1+1 = <?=X X is 1+1. ?>
 <input type="text" name="ask" value="<?=Param query_param(ask, Param) ?>">
 ```
 
@@ -124,6 +145,8 @@ The web framework of the future is <?=Framework best_web_framework(Framework). ?
 ```
 
 Assert facts and rules as if consulting a Prolog program. Directive syntax will call the given goal.
+
+`<?prolog ... ?>` is an alias for this.
 
 ## API
 

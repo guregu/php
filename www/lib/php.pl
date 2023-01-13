@@ -7,13 +7,18 @@
 php([H|T]) --> block(H), php(T).
 php([]) --> [].
 
-block(php(Head, Text)) --> "<?", seq(Head), whitespace, seq(Text), whitespace, "?>".
+block(php(Head, [])) --> "<?", nonwhite(Head), whitespace, "?>".
+block(php(Head, Text)) --> "<?", nonwhite(Head), whitespace, text(Text), whitespace, "?>".
+block(php("prolog", Text)) --> "<?", whitespace, text(Text), whitespace, "?>".
 block(text(Text)) --> text(Text), { Text \= [] }.
 
 text(['<', X|T]) --> ['<', X], { dif(X, '?') }, text(T).
 text([X|T]) --> [X], { dif(X, '<') }, text(T).
 text([]) --> [].
 text("<") --> "<".
+
+nonwhite([X|Cs]) --> { dif(X, '\n'), dif(X, '\t'), dif(X, ' ') },  [X], { atom(X), \+char_type(X, white) }, nonwhite(Cs).
+nonwhite([]) --> [].
 
 whitespace --> [X], { atom(X), char_type(X, white) }, (whitespace | []).
 whitespace --> " " | "\n" | "\t".
@@ -23,50 +28,91 @@ clauses([X|Xs]) --> term(X), { X \= end_of_file }, clauses(Xs).
 clauses([]) --> term(end_of_file).
 term(T) --> read_term_from_chars_(T).
 
+program([findall(Goal, Blocks)|Xs]) -->
+	[php("findall", Goal)],
+	program(Blocks),
+	[php("end", [])],
+	program(Xs).
+program([if(Goal, Blocks)|Xs]) -->
+	[php("if", Goal)],
+	program(Blocks),
+	[php("end", [])],
+	program(Xs).
+program([php(Head, Text)|Xs]) -->
+	{
+		dif(Head, "if"),
+		dif(Head, "findall"),
+		dif(Head, "end")
+	},
+	[php(Head, Text)],
+	program(Xs).
+program([text(Text)|Xs]) -->
+	[text(Text)], program(Xs).
+program([]) --> [].
+
 exec(Block) :-
+	exec([], Block).
+
+exec(Vars, Block) :-
 	\+unsafe_block(Block),
+	exec_flush,
+	nb_setval(capture, safe),
 	'$capture_output',
-	ignore(exec_(Block)),
+	ignore(exec_(Vars, Block)),
 	'$capture_output_to_chars'(Cs),
+	nb_delete(capture),
 	ignore(echo(Cs)), % escapes output
 	!.
-exec(Block) :-
+exec(Vars, Block) :-
 	unsafe_block(Block),
-	ignore(exec_(Block)).
+	exec_flush,
+	ignore(exec_(Vars, Block)).
+
+exec_flush :-
+	catch(nb_getval(capture, safe), error(existence_error(_, _), _), fail),
+	'$capture_output_to_chars'(Cs),
+	ignore(echo(Cs)),
+	nb_delete(capture),
+	!.
+exec_flush.
 
 % <?- ... ?> (query)
 % <?php ... ?>
-exec_(php("-", Code)) :-
-	exec_(php("php", Code)),
+exec_(Vars, php("-", Code)) :-
+	exec_(Vars, php("php", Code)),
 	!.
-exec_(php("php", Code)) :-
-	read_term_from_chars(Code, Goal, []),
+exec_(Vars0, php("php", Code)) :-
+	read_term_from_chars(Code, Goal, [variable_names(Vars1)]),
+	merge_vars(Vars0, Vars1, _),
 	ignore(Goal),
 	!.
-exec_(php("unsafe", Code)) :-
-	exec_(php("php", Code)),
+exec_(Vars, php("unsafe", Code)) :-
+	exec_(Vars, php("php", Code)),
 	!.
 % <?* ... ?> (findall)
-exec_(php("*", Code)) :-
-	read_term_from_chars(Code, Goal, []),
+exec_(Vars0, php("*", Code)) :-
+	read_term_from_chars(Code, Goal, [variable_names(Vars1)]),
+	merge_vars(Vars0, Vars1, _),
 	ignore(findall(_, call(Goal), _)),
 	!.
 % <?prolog ... ?> (clauses)
 % <? ... ?>
-exec_(php("prolog", Code)) :-
+exec_(Vars, php("prolog", Code)) :-
 	( once(phrase(clauses(Cs), Code))
 	; throw(error(invalid_template(prolog, Code)))
 	),
 	ignore(maplist(prolog_call, Cs)),
 	!.
-exec_(php([], Code)) :-
-	exec_(php("prolog", Code)),
+exec_(Vars, php([], Code)) :-
+	exec_(Vars, php("prolog", Code)),
 	!.
 % <?=Var ... ?> (echo)
-exec_(php([=|Var], Code)) :-
-	read_term_from_chars(Code, Goal, [variable_names(Vars)]),
+exec_(Vars0, php([=|Var], Code)) :-
+	Code \= [],
+	read_term_from_chars(Code, Goal, [variable_names(Vars1)]),
+	merge_vars(Vars0, Vars1, _),
 	atom_chars(Key, Var),
-	(  member(Key=X, Vars)
+	(  ( member(Key=X, Vars1) ; member(Key=X, Vars0) )
 	-> true
 	;  throw(error(var_not_found(var(Key), goal(Goal))))
 	),
@@ -75,19 +121,57 @@ exec_(php([=|Var], Code)) :-
 	;  true
 	),
 	!.
-exec_(text(Text)) :-
+exec_(Vars, php([=|Var], [])) :-
+	atom_chars(Key, Var),
+	(  memberchk(Key=X, Vars)
+	-> true
+	;  throw(error(var_not_found(var(Key))))
+	),
+	echo_unsafe(X),
+	!.
+exec_(Vars0, if(Condition, Blocks)) :-
+	read_term_from_chars(Condition, Cond, [variable_names(Vars1)]),
+	merge_vars(Vars0, Vars1, Vars),
+	(  call(Cond)
+	-> maplist(exec(Vars), Blocks)
+	;  true
+	).
+exec_(Vars0, findall(G, Blocks)) :-
+	read_term_from_chars(G, Goal, [variable_names(Vars1)]),
+	merge_vars(Vars0, Vars1, Vars),
+	findall(_, (call(Goal), maplist(exec(Vars), Blocks)), _).
+exec_(_, text(Text)) :-
 	'$put_chars'(Text),
 	!.
-exec_(X) :-
-	throw(error(unknown_block(X))).
+exec_(Vars, X) :-
+	throw(error(unknown_block(X, vars(Vars)))).
 
 unsafe_block(text(_)).
 unsafe_block(php("unsafe", _)).
 
+merge_vars(L0, L1) :-
+	maplist(merge_vars_(L1), L0).
+merge_vars_(L, Name=Var) :-
+	(  memberchk(Name=V1, L)
+	-> Var = V1
+	;  true
+	).
+
+merge_vars(Vs0, Vs1, Vs) :-
+	merge_vars(Vs0, Vs1),
+	merge_vars(Vs1, Vs0),
+	once(union(Vs0, Vs1, Vs)).
+
 render(File) :-
 	read_file_to_string(File, Cs, []),
 	% write(Cs),
-	once(phrase(php(Program), Cs)),
+	once(phrase(php(PHP), Cs)),
+	(  phrase(program(Program), PHP)
+	-> true
+	;  throw(error(invalid_program(PHP)))
+	),
+	!,
+	logf("~nPHP: ~w~nProg: ~w~n", [PHP, Program]),
 	% write(Program).
 	catch(maplist(exec, Program), Error, (
 		logf("Script error: ~w~nCode: ~w~n", [Error, Program]),
