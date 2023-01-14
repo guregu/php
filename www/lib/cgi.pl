@@ -1,5 +1,6 @@
 :- module(cgi, [env/2, handle/1, html_content/0, text_content/0, query_param/2, write_header/2, write_status/1, logf/2, debugf/2]).
 :- use_module(library(lists)).
+:- use_module(library(format)).
 
 :- dynamic(wrote/1).
 :- dynamic(query_param/2).
@@ -70,7 +71,6 @@ handle_file(File) :-
 	halt.
 
 handle_file(File) :-
-	logf("F2: ~w", [File]),
 	atom_concat(_, '.html', File),
 	atom_concat('public_html', File, Path),
 	file_exists(Path),
@@ -88,11 +88,20 @@ handle_file(File) :-
 	logf("File: ~w", [Path]),
 	!,
 	file_exists(Path),
+	time_file(Path, LastMod),
+	once(phrase(format_("\"~f\"", [LastMod]), LMs)),
+	atom_chars(LM, LMs),
+	% TODO: make this less horrible
+	(  env(if_none_match, LM)
+	-> write_status(304), flush_output, halt
+	;  true
+	),
 	split_string(Path, '.', '', Split),
 	last(Split, Ext),
 	once(ext_mime(Ext, Mime)),
-	logf("ext: ~w mime: ~w", [Ext, Mime]),
+	logf("ext: ~w mime: ~w lm: ~w", [Ext, Mime, LastMod]),
 	mime_content(Mime),
+	write_header('ETag', LM),
 	write_status(200),
 	read_file_to_string(Path, X, []),
 	'$put_chars'(X),
@@ -129,7 +138,7 @@ env(remote_user, Value) :- getenv('REMOTE_USER', Value).
 env(remote_ident, Value) :- getenv('REMOTE_IDENT', Value). % unused?
 env(content_type, Value) :- getenv('CONTENT_TYPE', Value).
 env(content_length, Value) :- getenv('HTTP_CONTENT_LENGTH', N), nonvar(N), atom_chars(N, Ns), number_chars(Value, Ns).
-
+env(if_none_match, Value) :- getenv('HTTP_IF_NONE_MATCH', Value).
 
 write_header(Header, Value) :-
 	\+wrote(headers),
@@ -179,7 +188,6 @@ ext_mime(png, 'image/png').
 ext_mime(gif, 'image/gif').
 ext_mime(jpeg, 'image/jpeg').
 ext_mime(jpg, 'image/jpeg').
-
 ext_mime(_, 'application/octet-stream').
 
 logf(Fmt, Args) :-
