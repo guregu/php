@@ -1,9 +1,10 @@
 :- module(php, [php//1, render/1, phpinfo/0, pretty_version/1, echo/1, htmlspecialchars//1, html_escape/2, op(901, fy, echo)]).
 :- use_module(cgi).
-:- use_module(dcgs).
+:- use_module(library(dcgs)).
 
 :- op(901, fy, echo).
 
+% php//1 grammar lexes script text into tokens
 php([H|T]) --> block(H), php(T).
 php([]) --> [].
 
@@ -28,6 +29,7 @@ clauses([X|Xs]) --> term(X), { X \= end_of_file }, clauses(Xs).
 clauses([]) --> term(end_of_file).
 term(T) --> read_term_from_chars_(T).
 
+% program//1 grammar parses tokens from php//1 into goals for exec/2.
 program([findall(Goal, Blocks)|Xs]) -->
 	[php("findall", Goal)],
 	program(Blocks),
@@ -55,57 +57,59 @@ exec(Block) :-
 
 exec(Vars, Block) :-
 	\+unsafe_block(Block),
-	exec_flush,
-	nb_setval(capture, safe),
-	'$capture_output',
+	exec_capture,
 	ignore(exec_(Vars, Block)),
-	'$capture_output_to_chars'(Cs),
-	nb_delete(capture),
-	ignore(echo(Cs)), % escapes output
+	exec_flush,
 	!.
 exec(Vars, Block) :-
 	unsafe_block(Block),
 	exec_flush,
 	ignore(exec_(Vars, Block)).
 
+% For exec_capture/0 and exec_flush/0 we need to do some ugly extralogical things
+% to avoid double-capture, which would result in the output being out-of-order.
+
+exec_capture :-
+	exec_flush,
+	nb_setval(capture, safe),
+	'$capture_output'.
+
 exec_flush :-
 	nb_current(capture, safe),
 	'$capture_output_to_chars'(Cs),
 	ignore(echo(Cs)),
 	nb_delete(capture),
+	flush_output,
 	!.
-exec_flush.
+exec_flush :- flush_output.
 
 % <?- ... ?> (query)
 % <?php ... ?>
-exec_(Vars, php("-", Code)) :-
-	exec_(Vars, php("php", Code)),
-	!.
 exec_(Vars0, php("php", Code)) :-
 	read_term_from_chars(Code, Goal, [variable_names(Vars1)]),
 	merge_vars(Vars0, Vars1, _),
-	ignore(Goal),
-	!.
+	ignore(Goal).
+exec_(Vars, php("-", Code)) :-
+	exec_(Vars, php("php", Code)).
 exec_(Vars, php("unsafe", Code)) :-
-	exec_(Vars, php("php", Code)),
-	!.
+	exec_(Vars, php("php", Code)).
+
 % <?* ... ?> (findall)
 exec_(Vars0, php("*", Code)) :-
 	read_term_from_chars(Code, Goal, [variable_names(Vars1)]),
 	merge_vars(Vars0, Vars1, _),
-	ignore(findall(_, call(Goal), _)),
-	!.
+	ignore(findall(_, call(Goal), _)).
+
 % <?prolog ... ?> (clauses)
 % <? ... ?>
 exec_(Vars, php("prolog", Code)) :-
 	( once(phrase(clauses(Cs), Code))
 	; throw(error(invalid_template(prolog, Code)))
 	),
-	ignore(maplist(prolog_call, Cs)),
-	!.
+	ignore(maplist(prolog_call, Cs)).
 exec_(Vars, php([], Code)) :-
-	exec_(Vars, php("prolog", Code)),
-	!.
+	exec_(Vars, php("prolog", Code)).
+
 % <?=Var ... ?> (echo)
 exec_(Vars0, php([=|Var], Code)) :-
 	Code \= [],
@@ -119,16 +123,18 @@ exec_(Vars0, php([=|Var], Code)) :-
 	(  call(Goal)
 	-> echo_unsafe(X)
 	;  true
-	),
-	!.
+	).
+
+% <?=Var ?> (shorthand for <?=Var true. ?>)
 exec_(Vars, php([=|Var], [])) :-
 	atom_chars(Key, Var),
 	(  memberchk(Key=X, Vars)
 	-> true
 	;  throw(error(var_not_found(var(Key))))
 	),
-	echo_unsafe(X),
-	!.
+	echo_unsafe(X).
+
+% <?if ... ?> ... <?end ?> (if blocks)
 exec_(Vars0, if(Condition, Blocks)) :-
 	read_term_from_chars(Condition, Cond, [variable_names(Vars1)]),
 	merge_vars(Vars0, Vars1, Vars),
@@ -136,13 +142,17 @@ exec_(Vars0, if(Condition, Blocks)) :-
 	-> maplist(exec(Vars), Blocks)
 	;  true
 	).
+
+% <?findall ... ?> ... <?end ?> (findall blocks)
 exec_(Vars0, findall(G, Blocks)) :-
 	read_term_from_chars(G, Goal, [variable_names(Vars1)]),
 	merge_vars(Vars0, Vars1, Vars),
 	findall(_, (call(Goal), maplist(exec(Vars), Blocks)), _).
+
+% raw text
 exec_(_, text(Text)) :-
-	'$put_chars'(Text),
-	!.
+	'$put_chars'(Text).
+
 exec_(Vars, X) :-
 	throw(error(unknown_block(X, vars(Vars)))).
 
@@ -171,8 +181,7 @@ render(File) :-
 	;  throw(error(invalid_program(PHP)))
 	),
 	!,
-	logf("~nPHP: ~w~nProg: ~w~n", [PHP, Program]),
-	% write(Program).
+	% logf("~nPHP: ~w~nProg: ~w~n", [PHP, Program]),
 	catch(maplist(exec, Program), Error, (
 		logf("Script error: ~w~nCode: ~w~n", [Error, Program]),
 		echo "Error: ", echo Error

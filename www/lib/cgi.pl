@@ -16,16 +16,14 @@ make_params('POST') :-
 	% TODO: handle other mime types
 	env(content_length, N),
 	read_len(N, Line),
-	make_post_params(Line),
-	true.
+	make_post_params(Line).
 
 make_post_params(Line) :-
 	( nonvar(Line) -> true ; throw(error(invalid(Line))) ),
 	logf("Parsing POST: ~w~n", [Line]),
 	once(phrase(form(Params), Line)),
 	logf("Post params: ~q~n", [Params]),
-	maplist(assert_param, Params),
-	true.
+	maplist(assert_param, Params).
 
 make_params('GET') :-
 	current_prolog_flag(argv, Argv),
@@ -184,6 +182,7 @@ mime_content(Mime) :- write_header('Content-type', Mime).
 
 ext_mime(js, 'application/javascript').
 ext_mime(txt, 'text/plain; charset=utf-8').
+ext_mime(pl, 'application/x-prolog; charset=utf-8').
 ext_mime(png, 'image/png').
 ext_mime(gif, 'image/gif').
 ext_mime(jpeg, 'image/jpeg').
