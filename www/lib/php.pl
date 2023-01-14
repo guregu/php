@@ -102,7 +102,7 @@ exec_(Vars0, php("*", Code)) :-
 
 % <?prolog ... ?> (clauses)
 % <? ... ?>
-exec_(Vars, php("prolog", Code)) :-
+exec_(_Vars, php("prolog", Code)) :-
 	( once(phrase(clauses(Cs), Code))
 	; throw(error(invalid_template(prolog, Code)))
 	),
@@ -174,7 +174,6 @@ merge_vars(Vs0, Vs1, Vs) :-
 
 render(File) :-
 	read_file_to_string(File, Cs, []),
-	% write(Cs),
 	once(phrase(php(PHP), Cs)),
 	(  phrase(program(Program), PHP)
 	-> true

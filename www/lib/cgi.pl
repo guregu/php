@@ -15,13 +15,15 @@ make_params :-
 make_params('POST') :-
 	% TODO: handle other mime types
 	env(content_length, N),
-	read_len(N, Line),
-	make_post_params(Line).
+	read_len(N, Body),
+	make_post_params(Body).
 
-make_post_params(Line) :-
-	( nonvar(Line) -> true ; throw(error(invalid(Line))) ),
-	logf("Parsing POST: ~w~n", [Line]),
-	once(phrase(form(Params), Line)),
+make_post_params(Body) :-
+	logf("Parsing POST: ~w~n", [Body]),
+	(  phrase(form(Params), Body)
+	-> true
+	;  logf("Invalid form: ~w", [Params]), Params = []
+	),
 	logf("Post params: ~q~n", [Params]),
 	maplist(assert_param, Params).
 
@@ -44,65 +46,62 @@ parse_get_param(Arg) :-
 	),
 	assert_param(Key-Value).
 
+index_file("/index.html").
+index_file("/index.pl").
+
+% handle directory index (path ends in "/")
+handle(ScriptName) :-
+	append(Prefix, "/", ScriptName),
+	index_file(Suffix),
+	append(Prefix, Suffix, Index),
+	handle(Index).
+
 handle(ScriptName) :-
 	scriptname_file(ScriptName, File),
-	catch(handle_file(File), Error, handle_error(Error)).
-	
-handle("/") :-
-	handle("/index.html") ; handle("/index.pl").
-
-handle(Path) :-
-	format(stderr, "Not found: ~w~n", [Path]),
-	http_error(404, "not found"),
-	halt.
-
-handle_file(File) :-
-	logf("F1: ~w", [File]),
-	atom_concat(_, '.pl', File),
-	file_exists(File),
-	consult(File),
-	assertz(current_file(File)),
-	logf("Handling script file: ~w", [File]),
-	!,
-	catch(main, Error, handle_error(Error)),
+	catch(handle_file(File), Error, handle_error(Error)),
 	flush_output,
 	halt.
 
+handle(Path) :-
+	logf("Not found: ~w", [Path]),
+	http_error(404, "not found").
+
 handle_file(File) :-
-	atom_concat(_, '.html', File),
-	atom_concat('public_html', File, Path),
-	file_exists(Path),
+	logf("Handling: ~w", [File]),
+	fail.
+
+handle_file(File) :-
+	cgibin_path(File, ".pl", File),
+	exists(File),
+	atom_chars(FileAtom, File),
+	consult(FileAtom),
+	assertz(current_file(File)),
+	!,
+	catch(main, Error, handle_error(Error)).
+
+handle_file(File) :-
+	public_path(File, ".html", Path),
 	assertz(current_file(Path)),
-	logf("Handling script file: ~w", [File]),
 	!,
 	html_content,
 	write_status(200),
-	atom_chars(Path, Template),
-	call_cleanup(render(Template), (flush_output, halt)).
+	catch(render(Path), Error, handle_error(Error)).
 
 handle_file(File) :-
-	logf("Handling static file ~w", [File]),
-	atom_concat('public_html', File, Path),
-	logf("File: ~w", [Path]),
-	!,
-	file_exists(Path),
-	time_file(Path, LastMod),
-	once(phrase(format_("\"~f\"", [LastMod]), LMs)),
-	atom_chars(LM, LMs),
-	% TODO: make this less horrible
-	(  env(if_none_match, LM)
+	public_path(File, _, Path),
+	logf("Static file: ~w → ~w", [File, Path]),
+	file_etag(Path, ETag),
+	(  env(if_none_match, ETag)
 	-> write_status(304), flush_output, halt
 	;  true
 	),
-	split_string(Path, '.', '', Split),
-	last(Split, Ext),
+	file_extension(Path, Ext),
 	once(ext_mime(Ext, Mime)),
-	logf("ext: ~w mime: ~w lm: ~w", [Ext, Mime, LastMod]),
 	mime_content(Mime),
-	write_header('ETag', LM),
+	write_header('ETag', ETag),
 	write_status(200),
-	read_file_to_string(Path, X, []),
-	'$put_chars'(X),
+	read_file_to_string(Path, Content, []),
+	'$put_chars'(Content),
 	flush_output,
 	halt.
 
@@ -115,11 +114,32 @@ handle_error(Error) :-
 scriptname_file(Name, File) :-
 	chars_urlenc(File, Name, []).
 
+public_path(File, Extension, Path) :-
+	once(append(_, Extension, File)),
+	append("/public_html/", File, Path),
+	exists(Path).
+
+cgibin_path(File, Extension, File) :-
+	once(append("/cgi-bin/", _, File)),
+	once(append(_, Extension, File)),
+	exists(File).
+
+file_etag(Path, ETag) :-
+	time_file(Path, LastMod),
+	once(phrase(format_("\"~f\"", [LastMod]), Cs)),
+	atom_chars(ETag, Cs).
+
+file_extension(Path, Ext) :-
+	split_string(Path, '.', '', Split),
+	last(Split, Ext0),
+	atom_chars(Ext, Ext0).
+
 http_error(Status, Msg) :-
 	logf("Returning HTTP error ~w: ~w", [Status, Msg]),
 	html_content,
 	write_status(Status),
 	format("<html><h3>error ~w</h3><p>~s~n</p></html>", [Status, Msg]),
+	flush_output,
 	halt.
 
 env(server_protocol, Value) :- getenv('SERVER_PROTOCOL', Value).
@@ -213,3 +233,7 @@ read_len_(N0, Len, [C|Cs]) :-
 	succ(N0, N),
 	read_len_(N, Len, Cs).
 read_len_(Len, Len, []).
+
+exists(Path) :-
+	atom_chars(X, Path),
+	file_exists(X).
