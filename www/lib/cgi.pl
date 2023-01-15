@@ -72,7 +72,6 @@ handle_file(File) :-
 
 handle_file(File) :-
 	cgibin_path(File, ".pl", File),
-	exists(File),
 	atom_chars(FileAtom, File),
 	consult(FileAtom),
 	assertz(current_file(File)),
@@ -130,9 +129,9 @@ file_etag(Path, ETag) :-
 	atom_chars(ETag, Cs).
 
 file_extension(Path, Ext) :-
-	split_string(Path, '.', '', Split),
-	last(Split, Ext0),
-	atom_chars(Ext, Ext0).
+	atom_chars(A, Path),
+	split_string(A, '.', '', Split),
+	last(Split, Ext).
 
 http_error(Status, Msg) :-
 	logf("Returning HTTP error ~w: ~w", [Status, Msg]),
