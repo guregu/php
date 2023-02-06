@@ -98,7 +98,7 @@ exec_(Vars, php("unsafe", Code)) :-
 exec_(Vars0, php("*", Code)) :-
 	read_term_from_chars(Code, Goal, [variable_names(Vars1)]),
 	merge_vars(Vars0, Vars1, _),
-	ignore(findall(_, call(Goal), _)).
+	findall(_, call(Goal), _).
 
 % <?prolog ... ?> (clauses)
 % <? ... ?>
@@ -193,8 +193,7 @@ phpinfo :- render('lib/phpinfo.html').
 
 pretty_version(Version) :-
 	current_prolog_flag(version_data, trealla(Maj, Min, Patch, _)),
-	atomic_concat('trealla ', Maj, Head),
-	atomic_list_concat([Head, Min, Patch], '.', Version).
+	once(phrase(format_("trealla ~d.~d.~d", [Maj, Min, Patch]), Version)).
 
 htmlspecialchars([]) --> [].
 htmlspecialchars([C|Cs]) --> { danger_substitute(C, Sub) }, Sub, htmlspecialchars(Cs).

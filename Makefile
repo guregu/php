@@ -8,7 +8,7 @@ SPINCFG = spin.toml
 endif
 
 ifndef SPINVER
-SPINVER = v0.7.1
+SPINVER = v0.8.0
 endif
 
 ifndef ARCH
@@ -31,13 +31,16 @@ build:
 	spin build --file $(SPINCFG)
 
 run: build
-	$(SPINFLAGS) spin up --file $(SPINCFG)
+	$(SPINFLAGS) spin up --file $(SPINCFG) --follow-all
 
 watch: build
-	nodemon --watch cgi-bin --watch . --ext pl,html --verbose --legacy-watch --signal SIGINT --exec '$(SPINFLAGS) spin up --file $(SPINCFG)'
+	nodemon --watch cgi-bin --watch . --ext pl,html,wasm --verbose --legacy-watch --signal SIGINT --exec '$(SPINFLAGS) spin up --file $(SPINCFG)'
 
 container: build
 	nixpacks build . --name php --pkgs wget curl \
 		--install-cmd 'wget -O spin.tar.gz $(SPINBIN) && tar xvf spin.tar.gz && (curl https://get.wasmer.io -sSfL | sh)' \
 		--build-cmd './spin build' \
 		--start-cmd './spin up --file spin.toml'
+
+oci:
+	$(SPINFLAGS) spin oci push ghcr.io/guregu/php:v0.0.1-test1

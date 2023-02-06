@@ -1,18 +1,36 @@
 spin_version = "1"
-name = "prolog-php"
-description = "Prolog Home Page"
+# name = "prolog-php"
+name = "prolog-php-test"
+description = "Prolog Home Page (test)"
 trigger = { type = "http", base = "/" }
-version = "0.4.0"
+version = "0.0.0"
+
+# allowed_http_hosts = ["insecure:allow-all"]
+
+
+# [[component]]
+# id = "prolog"
+# description = "PHP: Prolog Home Page"
+# source = "wapm_packages/guregu/trealla@0.11.30/tpl.wasm"
+# files = [{ source = "www/", destination = "/"}]
+# [component.trigger]
+# route = "/..."
+# [component.build]
+# command = "wapm install"
+# [component.trigger.executor]
+# type = "wagi"
+# argv = "tpl --library /lib -q -f /lib/cgi -f /lib/php --ns -g call_cleanup(handle(\"${SCRIPT_NAME}\"),halt) -- ${ARGS}"
 
 [[component]]
-id = "prolog"
+id = "prolog-v2"
 description = "PHP: Prolog Home Page"
-source = "wapm_packages/guregu/trealla@0.11.30/tpl.wasm"
+source = "libtpl-spin.wasm"
 files = [{ source = "www/", destination = "/"}]
+allowed_http_hosts = ["insecure:allow-all"]
 [component.trigger]
 route = "/..."
-[component.build]
-command = "wapm install"
-[component.trigger.executor]
-type = "wagi"
-argv = "tpl --library /lib -q -f /lib/cgi -f /lib/php --ns -g call_cleanup(handle(\"${SCRIPT_NAME}\"),halt) -- ${ARGS}"
+# [component.build]
+# command = "wapm install"
+# [component.trigger.executor]
+# type = "wagi"
+# argv = "tpl --library /lib -q -f /lib/cgi -f /lib/php --ns -g call_cleanup(handle(\"${SCRIPT_NAME}\"),halt) -- ${ARGS}"
