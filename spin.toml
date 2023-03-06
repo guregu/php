@@ -27,6 +27,7 @@ description = "PHP: Prolog Home Page"
 source = "libtpl-spin.wasm"
 files = [{ source = "www/", destination = "/"}]
 allowed_http_hosts = ["insecure:allow-all"]
+key_value_stores = ["default"]
 [component.trigger]
 route = "/..."
 # [component.build]
@@ -34,3 +35,8 @@ route = "/..."
 # [component.trigger.executor]
 # type = "wagi"
 # argv = "tpl --library /lib -q -f /lib/cgi -f /lib/php --ns -g call_cleanup(handle(\"${SCRIPT_NAME}\"),halt) -- ${ARGS}"
+#[component.source]
+#url = "https://github.com/guregu/trealla/releases/download/v0.14.3/libtpl-spin.wasm"
+#digest = "sha256:1dc2d285b8d4d86d8315b91c283e767013edb3ae581cf47cdb79b309bf5ab391"
+[component.environment]
+INIT = "foo.pl"
