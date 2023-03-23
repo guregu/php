@@ -1,42 +1,33 @@
 spin_version = "1"
-# name = "prolog-php"
-name = "prolog-php-test"
-description = "Prolog Home Page (test)"
+name = "prolog-php"
+description = "Prolog Home Page"
 trigger = { type = "http", base = "/" }
-version = "0.0.0"
-
-# allowed_http_hosts = ["insecure:allow-all"]
-
-
-# [[component]]
-# id = "prolog"
-# description = "PHP: Prolog Home Page"
-# source = "wapm_packages/guregu/trealla@0.11.30/tpl.wasm"
-# files = [{ source = "www/", destination = "/"}]
-# [component.trigger]
-# route = "/..."
-# [component.build]
-# command = "wapm install"
-# [component.trigger.executor]
-# type = "wagi"
-# argv = "tpl --library /lib -q -f /lib/cgi -f /lib/php --ns -g call_cleanup(handle(\"${SCRIPT_NAME}\"),halt) -- ${ARGS}"
+version = "0.2.0"
 
 [[component]]
-id = "prolog-v2"
+id = "prolog"
 description = "PHP: Prolog Home Page"
-source = "libtpl-spin.wasm"
+#source = "libtpl-spin.wasm"
 files = [{ source = "www/", destination = "/"}]
 allowed_http_hosts = ["insecure:allow-all"]
 key_value_stores = ["default"]
 [component.trigger]
 route = "/..."
-# [component.build]
-# command = "wapm install"
-# [component.trigger.executor]
-# type = "wagi"
-# argv = "tpl --library /lib -q -f /lib/cgi -f /lib/php --ns -g call_cleanup(handle(\"${SCRIPT_NAME}\"),halt) -- ${ARGS}"
-#[component.source]
-#url = "https://github.com/guregu/trealla/releases/download/v0.14.3/libtpl-spin.wasm"
-#digest = "sha256:1dc2d285b8d4d86d8315b91c283e767013edb3ae581cf47cdb79b309bf5ab391"
+[component.source]
+url = "https://github.com/guregu/trealla/releases/download/v0.17.1/libtpl-spin.wasm"
+digest = "sha256:ae4f24fc897917844cf8cc81d9035443cf2fbf5b4cba757457567e6ab05d3635"
 [component.environment]
-INIT = "foo.pl"
+INIT = "init-php.pl"
+TPL_LIBRARY_PATH = "lib"
+PHP_ROOT = "public_html"
+#POSTGRES_URL = "postgres://root:password@example.com/neondb"
+
+[[component]]
+id = "assets"
+description = "static files"
+files = [{ source = "www/assets/", destination = "/"}]
+[component.source]
+url = "https://github.com/fermyon/spin-fileserver/releases/download/v0.0.2/spin_static_fs.wasm"
+digest = "sha256:65456bf4e84cf81b62075e761b2b0afaffaef2d0aeda521b245150f76b96421b"
+[component.trigger]
+route = "/assets/..."

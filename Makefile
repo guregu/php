@@ -28,10 +28,10 @@ endif
 all: run
 
 build:
-	spin build --file $(SPINCFG)
+	spin build --from $(SPINCFG)
 
 run: build
-	$(SPINFLAGS) spin up --file $(SPINCFG) --follow-all
+	$(SPINFLAGS) spin up --from $(SPINCFG) --follow-all
 
 watch: build
 	nodemon --watch cgi-bin --watch . --ext pl,html,wasm --verbose --legacy-watch --signal SIGINT --exec '$(SPINFLAGS) spin up --file $(SPINCFG)'

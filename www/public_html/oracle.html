@@ -44,13 +44,13 @@
 <main>
 	<form method="POST" enctype="application/x-www-form-urlencoded">
 		<input type="text" name="ask" placeholder="ASK ME ANYTHING"
-		style="width: 80ch;" value="<?=X query_param(ask, X) ?>"> 
+		style="width: 80ch;" value="<?=X form_value(ask, X) ?>"> 
 		<input type="submit" value="Ask">
 	</form>
 
 	<article class="qa">
-		<h3 class="q"><?=Ask query_param(ask, Ask). ?></h3>
-		<h3 class="a"><?=Wisdom query_param(ask, Ask), oracle(Ask, Wisdom). ?></h3>
+		<h3 class="q"><?=Ask form_value(ask, Ask). ?></h3>
+		<h3 class="a"><?=Wisdom form_value(ask, Ask), oracle(Ask, Wisdom). ?></h3>
 	</article>
 </main>
 

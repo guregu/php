@@ -63,7 +63,7 @@ mortal(X) :- person(X)."><?=X query_param("src", X) ?></textarea><br>
 		<li><a href="https://github.com/guregu/trealla-js">trealla-js</a></li>
 	</ul>
 	<br>
-	<img src="/trealla.png">
+	<img src="/assets/trealla.png">
 </section>
 
 <footer>
@@ -71,7 +71,7 @@ powered by <a href="https://github.com/trealla-prolog/trealla">Trealla Prolog</a
 </footer>
 
 <script type="module">
-import { load, Prolog, toJSON } from 'https://esm.run/trealla@0.15.0';
+import { load, Prolog, toJSON } from 'https://esm.sh/trealla@<?=V query_param(tpl, V) ; V = "0.15.3" ?>?target=es2018';
 
 try {
 	load().then(init);

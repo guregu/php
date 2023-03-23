@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simple Guestbook</title>
+<style>
+body {
+	font-family: Arial, sans-serif;
+	max-width: 800px;
+	margin: 0 auto;
+	padding: 20px;
+	line-height: 1.6;
+	tab-size: 4;
+}
+h1 {
+	text-align: center;
+	font-size: 2.5rem;
+	margin-bottom: 20px;
+}
+
+ul {
+	list-style-type: none;
+	padding: 0;
+}
+
+ul li {
+	border-bottom: 1px solid #ccc;
+	padding: 10px 0;
+}
+
+ul li:last-child {
+	border-bottom: none;
+}
+
+ul li h3 {
+	font-size: 1.2rem;
+	margin: 0 0 5px;
+}
+
+ul li p {
+	margin: 0;
+}
+
+ul li small {
+	display: block;
+	font-size: 0.8rem;
+	color: #777;
+	margin-top: 5px;
+}
+
+form {
+	margin-top: 20px;
+}
+
+label {
+	display: block;
+	margin-bottom: 5px;
+}
+
+input, textarea {
+	width: 100%;
+	font-family: inherit;
+	padding: 5px;
+	margin-bottom: 15px;
+	resize: none;
+}
+
+input[type="submit"] {
+	width: auto;
+	cursor: pointer;
+}
+</style>
+</head>
+<?
+
+postgres(PG) :-
+	(  getenv("POSTGRES_URL", URL)
+	-> postgres_open_url(URL, PG)
+	;  postgres_open("localhost", PG, [port(5432), user("postgres"), password("password"), dbname("postgres")])
+	),
+	%postgres_execute(PG, "CREATE TABLE IF NOT EXISTS guestbook (id serial primary key, time timestamp default CURRENT_TIMESTAMP, author text, msg text);", [], _).
+	true.
+
+posts(Posts) :-
+	postgres(PG),
+	postgres_query(PG, "SELECT author, msg, time::text FROM guestbook ORDER BY id DESC;", [], Posts, _).
+
+add_post :-
+	current_http_method(post),
+	query_param(author, Author),
+	query_param(message, Message),
+	postgres(PG),
+	postgres_execute(PG, "INSERT INTO guestbook (author, msg) VALUES($1, $2)", [string(Author), string(Message)], _).
+
+:- ignore(add_post).
+
+?>
+<body>
+<h1>Guestbook</h1>
+
+<section>
+<form method="POST">
+	<label for="author">Your Name:</label>
+	<input type="text" id="author" name="author" required>
+	<label for="message">Message:</label>
+	<textarea id="message" name="message" rows="4" required></textarea>
+	<input type="submit" name="submit" value="Submit">
+</form>
+</section>
+
+<ul>
+<?findall posts(Posts), member(row(string(Name), string(Msg), string(Date)), Posts). ?>
+	<li>
+		<h3><?=Name ?></h3>
+		<p><?=Msg ?></p>
+		<small><?=Date ?></small>
+	</li>
+<?end ?>
+</ul>
+
+<section>
+	<h2>Source Code</h2>
+	<pre><?=Source current_file(File), read_file_to_string(File, Source, []). ?></pre>
+</section>
+</body>
+</html>

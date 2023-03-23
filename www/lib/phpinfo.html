@@ -7,19 +7,18 @@
 			</span>
 		</h1>
 	</header>
-	<h3>Envrionment</h3>
-	<table>
-		<tr><th>Name</th><th>Value</th></tr>
-	<?findall env(K, V). ?>
-		<tr><td><?=K ?></td><td><?=V ?></td></tr>
-	<?end ?>
-	</table>
 	<h3>Prolog flags</h3>
 	<table>
 		<tr><th>Flag</th><th>Value</th></tr>
-	<?findall   K = argv, current_prolog_flag(K, V)
-			  ; K = version_git, current_prolog_flag(K, V)
+	<?findall K = version_git, current_prolog_flag(K, V)
 			  ; current_prolog_flag(K, V). ?>
+		<tr><td><?=K ?></td><td><?=V ?></td></tr>
+	<?end ?>
+	</table>
+	<h3>Headers</h3>
+	<table>
+		<tr><th>Name</th><th>Value</th></tr>
+	<?findall current_http_header(K, V). ?>
 		<tr><td><?=K ?></td><td><?=V ?></td></tr>
 	<?end ?>
 	</table>

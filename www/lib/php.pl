@@ -1,24 +1,56 @@
-:- module(php, [php//1, render/1, phpinfo/0, pretty_version/1, echo/1, htmlspecialchars//1, html_escape/2, op(901, fy, echo)]).
-:- use_module(cgi).
+:- module(php, [php//1, render/1, phpinfo/0, pretty_version/1, echo/1, htmlspecialchars//1, html_escape/2, op(901, fy, echo), env/2, query_param/2]).
 :- use_module(library(dcgs)).
+:- use_module(library(format)).
+
+:- dynamic(env/2).
+:- dynamic(query_param/2).
+:- dynamic(form_value/2).
 
 :- op(901, fy, echo).
+
+php_handle(Handle, Body) :-
+	Handle =.. [_Method, Path, Params],
+	file_root(Root),
+	once(phrase(filename(Path), File0)),
+	append(Root, File0, File),
+    html_content,
+    assertz(current_file(File)),
+	assert_params(query_param, Params),
+	(  Body = form(Pairs)
+    -> assert_params(form_value, Pairs)
+    ;  true
+    ),
+	setup_call_cleanup(
+		current_output(S),
+		( set_output(http_body), render(File) ),
+		set_output(S)
+	).
+
+assert_params(Functor, Ps) :- maplist(assert_param(Functor), Ps).
+assert_param(Functor, K-V) :-
+	X =.. [Functor, K, V],
+	assertz(X).
 
 % php//1 grammar lexes script text into tokens
 php([H|T]) --> block(H), php(T).
 php([]) --> [].
 
 block(php(Head, [])) --> "<?", nonwhite(Head), whitespace, "?>".
-block(php(Head, Text)) --> "<?", nonwhite(Head), whitespace, text(Text), whitespace, "?>".
-block(php("prolog", Text)) --> "<?", whitespace, text(Text), whitespace, "?>".
+block(php(Head, Text)) --> "<?", nonwhite(Head), whitespace, code(Text), whitespace, "?>".
+block(php("prolog", Text)) --> "<?", whitespace, code(Text), whitespace, "?>".
 block(text(Text)) --> text(Text), { Text \= [] }.
 
-text(['<', X|T]) --> ['<', X], { dif(X, '?') }, text(T).
-text([X|T]) --> [X], { dif(X, '<') }, text(T).
+text([H|T]) --> [H], { H == '<' }, text_nonquestion(T).
+text([H|T]) --> [H], { H \= '<' }, text(T).
 text([]) --> [].
-text("<") --> "<".
+text_nonquestion([H|T]) --> [H], { H \= '?' }, text(T).
 
-nonwhite([X|Cs]) --> { dif(X, '\n'), dif(X, '\t'), dif(X, ' ') },  [X], { atom(X), \+char_type(X, white) }, nonwhite(Cs).
+code([H|T]) --> [H], { H == '?' }, code_nonbracket(T).
+code([H|T]) --> [H], { H \= '?' }, code(T).
+code([]) --> [].
+code_nonbracket([H|T]) --> [H], { H \= '>' }, code(T).
+
+nonwhite([X|Cs]) --> [X], { atom(X), \+char_type(X, white), X \= '\n', X \= '\t' }, nonwhite(Cs).
 nonwhite([]) --> [].
 
 whitespace --> [X], { atom(X), char_type(X, white) }, (whitespace | []).
@@ -41,12 +73,12 @@ program([if(Goal, Blocks)|Xs]) -->
 	[php("end", [])],
 	program(Xs).
 program([php(Head, Text)|Xs]) -->
-	{
-		dif(Head, "if"),
-		dif(Head, "findall"),
-		dif(Head, "end")
-	},
 	[php(Head, Text)],
+	{
+		Head \= "if",
+		Head \= "findall",
+		Head \= "end"
+	},
 	program(Xs).
 program([text(Text)|Xs]) -->
 	[text(Text)], program(Xs).
@@ -69,15 +101,21 @@ exec(Vars, Block) :-
 % For exec_capture/0 and exec_flush/0 we need to do some ugly extralogical things
 % to avoid double-capture, which would result in the output being out-of-order.
 
+% exec_capture :- true.
 exec_capture :-
 	exec_flush,
-	nb_setval(capture, safe),
-	'$capture_output'.
+	current_output(S),
+	nb_setval(capture, S),
+	'$memory_stream_create'(Cap, []),
+	set_output(Cap).
 
 exec_flush :-
-	nb_current(capture, safe),
-	'$capture_output_to_chars'(Cs),
-	ignore(echo(Cs)),
+	nb_current(capture, S),
+	current_output(Cap),
+	'$memory_stream_to_chars'(Cap, Cs),
+	close(Cap),
+	ignore(echo(S, Cs)),
+	set_output(S),
 	nb_delete(capture),
 	flush_output,
 	!.
@@ -207,16 +245,17 @@ danger_substitute('\'', "&apos;").
 danger_substitute(<, "&lt;").
 danger_substitute(>, "&gt;").
 
-echo([]) :- !.
-echo('') :- !.
-echo(String) :-
+echo(X) :- current_output(S), echo(S, X).
+echo(_, []) :- !.
+echo(_, '') :- !.
+echo(S, String) :-
 	string(String),
 	html_escape(String, Sanitized),
-	'$put_chars'(Sanitized),
+	'$put_chars'(S, Sanitized),
 	!.
-echo(X) :-
+echo(S, X) :-
 	write_term_to_chars(X, [], Cs),
-	echo(Cs),
+	echo(S, Cs),
 	!.
 	
 echo_unsafe([]) :- !.
@@ -229,3 +268,29 @@ echo_unsafe(X) :-
 	write_term_to_chars(X, [], Cs),
 	echo_unsafe(Cs),
 	!.
+
+logf(Fmt, Args) :-
+	date_time(_, _, _, HH, MM, S),
+	format(stderr, "[~|~`0t~w~2+:~|~`0t~w~2+:~`0t~w~2+] ", [HH, MM, S]),
+	format(stderr, Fmt, Args),
+	write(stderr, '\n'),
+	flush_output(stderr).
+
+debugf(_, _).
+
+file_root(Root) :-
+    file_root_(Root), 
+    append(_, "/", Root).
+file_root(Root) :-
+    file_root_(Root0), 
+    append(Root0, "/", Root).
+file_root_(Root) :- getenv('PHP_ROOT', Root0), atom_chars(Root0, Root).
+file_root_("public_html").
+
+filename([]) --> "index.html".
+filename([H|T]) -->
+    { atom_chars(H, Cs) },
+    Cs,
+    filename_more(T).
+filename_more([H|T]) --> "/", { atom_chars(H, Cs) }, Cs, filename_more(T).
+filename_more([]) --> [].
