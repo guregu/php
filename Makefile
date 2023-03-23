@@ -31,7 +31,7 @@ build:
 	spin build --from $(SPINCFG)
 
 run: build
-	$(SPINFLAGS) spin up --from $(SPINCFG) --follow-all
+	$(SPINFLAGS) spin up -f $(SPINCFG)
 
 watch: build
 	nodemon --watch cgi-bin --watch . --ext pl,html,wasm --verbose --legacy-watch --signal SIGINT --exec '$(SPINFLAGS) spin up --file $(SPINCFG)'
