@@ -17,7 +17,7 @@ route = "/..."
 url = "https://github.com/guregu/trealla/releases/download/v0.17.1/libtpl-spin.wasm"
 digest = "sha256:ae4f24fc897917844cf8cc81d9035443cf2fbf5b4cba757457567e6ab05d3635"
 [component.environment]
-INIT = "init-php.pl"
+#INIT = "init-php.pl"
 TPL_LIBRARY_PATH = "lib"
 PHP_ROOT = "public_html"
 #POSTGRES_URL = "postgres://root:password@example.com/neondb"

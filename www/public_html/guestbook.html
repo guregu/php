@@ -84,7 +84,7 @@ postgres(PG) :-
 
 posts(Posts) :-
 	postgres(PG),
-	postgres_query(PG, "SELECT author, msg, time::text FROM guestbook ORDER BY id DESC;", [], Posts, _).
+	postgres_query(PG, "SELECT author, msg, to_char(time, 'YYYY-MM-DD HH24:MM:SS') FROM guestbook ORDER BY id DESC;", [], Posts, _).
 
 add_post :-
 	current_http_method(post),
