@@ -88,8 +88,8 @@ posts(Posts) :-
 
 add_post :-
 	current_http_method(post),
-	query_param(author, Author),
-	query_param(message, Message),
+	form_value(author, Author),
+	form_value(message, Message),
 	postgres(PG),
 	postgres_execute(PG, "INSERT INTO guestbook (author, msg) VALUES($1, $2)", [string(Author), string(Message)], _).
 
