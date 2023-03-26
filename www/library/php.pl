@@ -1,12 +1,20 @@
-:- module(php, [php//1, render/1, phpinfo/0, pretty_version/1, echo/1, htmlspecialchars//1, html_escape/2, op(901, fy, echo), env/2, query_param/2]).
+:- module(php, [
+	php//1,
+	php_handle/2,
+	render/1,
+	echo/1,
+	htmlspecialchars//1,
+	html_escape/2, 
+	query_param/2,
+	form_value/2,
+	phpinfo/0
+]).
 :- use_module(library(dcgs)).
 :- use_module(library(format)).
 
 :- dynamic(env/2).
 :- dynamic(query_param/2).
 :- dynamic(form_value/2).
-
-:- op(901, fy, echo).
 
 php_handle(Handle, Body) :-
 	Handle =.. [_Method, Path, Params],
@@ -102,7 +110,6 @@ exec(Vars, Block) :-
 % For exec_capture/0 and exec_flush/0 we need to do some ugly extralogical things
 % to avoid double-capture, which would result in the output being out-of-order.
 
-% exec_capture :- true.
 exec_capture :-
 	exec_flush,
 	current_output(S),
@@ -222,17 +229,14 @@ render(File) :-
 	% logf("~nPHP: ~w~nProg: ~w~n", [PHP, Program]),
 	catch(maplist(exec, Program), Error, (
 		logf("Script error: ~w~nCode: ~w~n", [Error, Program]),
-		echo "Error: ", echo Error
+		% TODO: only for HTML output?
+		format(http_body, "Error: ~w", [Error])
 	)).
 
 prolog_call(':-'(Goal)) :- ignore(Goal).
 prolog_call(Goal) :- user:assertz(Goal).
 
-phpinfo :- render('lib/phpinfo.html').
-
-pretty_version(Version) :-
-	current_prolog_flag(version_data, trealla(Maj, Min, Patch, _)),
-	once(phrase(format_("trealla ~d.~d.~d", [Maj, Min, Patch]), Version)).
+phpinfo :- render("library/phpinfo.html").
 
 htmlspecialchars([]) --> [].
 htmlspecialchars([C|Cs]) --> { danger_substitute(C, Sub) }, Sub, htmlspecialchars(Cs).
@@ -276,8 +280,6 @@ logf(Fmt, Args) :-
 	format(stderr, Fmt, Args),
 	write(stderr, '\n'),
 	flush_output(stderr).
-
-debugf(_, _).
 
 file_root(Root) :-
     file_root_(Root), 

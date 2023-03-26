@@ -7,18 +7,18 @@ version = "0.2.0"
 [[component]]
 id = "prolog"
 description = "PHP: Prolog Home Page"
-#source = "libtpl-spin.wasm"
+source = "libtpl-spin.wasm"
 files = [{ source = "www/", destination = "/"}]
 allowed_http_hosts = ["insecure:allow-all"]
 key_value_stores = ["default"]
 [component.trigger]
 route = "/..."
-[component.source]
-url = "https://github.com/guregu/trealla/releases/download/v0.17.1/libtpl-spin.wasm"
-digest = "sha256:ae4f24fc897917844cf8cc81d9035443cf2fbf5b4cba757457567e6ab05d3635"
+#[component.source]
+#url = "https://github.com/guregu/trealla/releases/download/v0.17.1/libtpl-spin.wasm"
+#digest = "sha256:ae4f24fc897917844cf8cc81d9035443cf2fbf5b4cba757457567e6ab05d3635"
 [component.environment]
-#INIT = "init-php.pl"
-TPL_LIBRARY_PATH = "lib"
+#INIT = "init-custom.pl"
+TPL_LIBRARY_PATH = "library"
 PHP_ROOT = "public_html"
 #POSTGRES_URL = "postgres://root:password@example.com/neondb"
 

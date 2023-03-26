@@ -1,17 +1,13 @@
 <div id="phpinfo">
 	<style>header { padding: 0.5em; background: #bdb0e1; } td:first-of-type { background: #dedeff; } td:nth-of-type(2) { background: #dfdfdf; }</style>
 	<header>
-		<h1>phpinfo/0<br>
-			<span style='font-size: 14pt;'>
-				Version: <?=Ver pretty_version(Ver). ?>
-			</span>
-		</h1>
+		<h1>phpinfo/0</h1>
 	</header>
 	<h3>Prolog flags</h3>
 	<table>
 		<tr><th>Flag</th><th>Value</th></tr>
 	<?findall K = version_git, current_prolog_flag(K, V)
-			  ; current_prolog_flag(K, V). ?>
+			; current_prolog_flag(K, V). ?>
 		<tr><td><?=K ?></td><td><?=V ?></td></tr>
 	<?end ?>
 	</table>
