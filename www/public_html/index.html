@@ -1,6 +1,11 @@
 <html>
 	<head>
 		<title>PHP: Prolog Home Page</title>
+		<style>
+		:is(a, a:visited) {
+			color: navy;
+		}
+		</style>
 	</head>
 	<body>
 	<marquee style='font-size: 10vh;' scrollamount=10>
@@ -15,10 +20,15 @@
 		"php: a fractal of good design"
 	</h2>
 
-	<p>
+	<p id="intro">
 		PHP stands for Prolog Home Page.<br>
-		PHP is Prolog implemented in C, compiled to WASM, speaking CGI, executed by a Rust runtime, interpreting PHP-style templates
+		PHP is <a href="https://github.com/trealla-prolog/trealla">Prolog implemented in C</a>,
+		<a href="https://github.com/guregu/trealla">compiled to Wasm</a>,
+		speaking <s>CGI</s> <a href="https://github.com/guregu/trealla-spin">Wasm components</a>,
+		executed by a <a href="https://github.com/fermyon/spin">Rust runtime</a>,
+		interpreting PHP-style templates
 	</p>
+
 	<p>
 		open source: <a href="https://github.com/guregu/php">github.com/guregu/php</a>
 	</p>

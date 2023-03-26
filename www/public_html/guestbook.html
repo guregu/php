@@ -86,10 +86,14 @@ posts(Posts) :-
 	postgres(PG),
 	postgres_query(PG, "SELECT author, msg, to_char(time, 'YYYY-MM-DD HH24:MM:SS') FROM guestbook ORDER BY id DESC;", [], Posts, _).
 
+spamlike(Cs) :-
+	once(phrase((..., ("www."|"https:"|"http:"), ...), Cs)).
+
 add_post :-
 	current_http_method(post),
 	form_value(author, Author),
 	form_value(message, Message),
+	\+spamlike(Message),
 	postgres(PG),
 	postgres_execute(PG, "INSERT INTO guestbook (author, msg) VALUES($1, $2)", [string(Author), string(Message)], _).
 

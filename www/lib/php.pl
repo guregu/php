@@ -13,6 +13,7 @@ php_handle(Handle, Body) :-
 	file_root(Root),
 	once(phrase(filename(Path), File0)),
 	append(Root, File0, File),
+	file_exists(File),
     html_content,
     assertz(current_file(File)),
 	assert_params(query_param, Params),
