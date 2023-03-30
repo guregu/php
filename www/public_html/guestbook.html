@@ -75,10 +75,10 @@ input[type="submit"] {
 postgres(PG) :-
 	(  getenv("POSTGRES_URL", URL)
 	-> postgres_open_url(URL, PG)
-	;  postgres_open("localhost", PG, [port(5432), user("postgres"), password("password"), dbname("postgres")])
+	;  postgres_open("localhost", PG, [port(32768), user("postgres"), password("password"), dbname("postgres")])
 	),
-	%postgres_execute(PG, "CREATE TABLE IF NOT EXISTS guestbook (id serial primary key, time timestamp default CURRENT_TIMESTAMP, author text, msg text);", [], _).
-	true.
+	postgres_execute(PG, "CREATE TABLE IF NOT EXISTS guestbook (id serial primary key, time timestamp default CURRENT_TIMESTAMP, author text, msg text);", [], _).
+	%true.
 
 posts(Posts) :-
 	postgres(PG),
