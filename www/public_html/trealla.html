@@ -11,8 +11,11 @@
 		div#prompt { display: flex; gap: 0.3em; width: min(95vw, 1200px) }
 		#prompt input[type=text] { width: 72ch; flex-grow: 1; }
 		#prompt label { min-width: 2ch; font-size: 19px; margin-top: auto; }
-		#tinker { padding-top: 0.3em; width: min(95vw, 1200px) }
+		#tinker { padding-top: 0.3em; width: min(95vw, 1200px); }
 		#tinker > * { margin-bottom: 5px; }
+		#tinker { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1em; }
+		#tinker > :nth-child(1) { text-align: left;	}
+		#tinker > :nth-child(2) { text-align: right; }
 		input, textarea, pre { font-size: 16px; tab-size: 4; quotes: "'" "'"; }
 		pre { margin: 0; }
 		.query-box[data-state="done"] .query-buttons { display: none; }
@@ -24,26 +27,51 @@
 </head>
 <?
 default_version("0.16.0").
+
+:- sqlite_open(default, Conn), assertz(sql(Conn)).
+
+source_code(Src, Q) :-
+	query_param(share, ID),
+	ID \= "",
+	setup_call_cleanup(
+		sqlite_open(default, Conn),
+		(
+			sqlite_query(Conn, "SELECT src, q FROM shares WHERE id = ?", [text(ID)], Rows, _),
+			Rows = [row(text(Src), text(Q))]
+		),
+		sqlite_close(Conn)
+	).
+source_code(Src, Q) :-
+	( query_param(src, Src) ; form_value(src, Src) ; Src = "" ),
+	( query_param(q, Q) ; form_value(q, Q) ; Q = "" ).
+
+:- source_code(Source, Query), assertz(source(Source)), assertz(query(Query)).
 ?>
 <body>
 <h2>Trealla Playground</h2>
 <p>Run Prolog in your browser. Press escape then tab to escape the text editor.</p>
-<form onsubmit="return ask && ask().then(updateURL), false;">
+<form onsubmit="return ask && ask(), false;">
 	<textarea cols=80 rows=20 id="src" spellcheck="false" placeholder="person(socrates).
-mortal(X) :- person(X)."><?=X query_param(src, X) ; form_value(src, X) ?></textarea><br>
+mortal(X) :- person(X)."><?=X source(X). ?></textarea><br>
 	<div id="prompt">
-		<label for="query">?- </label><input type="text" placeholder="mortal(Who)." value='<?=X query_param("q", X) ?>' id="query" required>
+		<label for="query">?- </label><input type="text" placeholder="mortal(Who)." value='<?=X query(X). ?>' id="query" required>
 		<input type="submit" value="Loading..." id="query-btn" spellcheck="false" disabled>
 	</div>
 </form>
 
 <section id="tinker" style="text-align: right;">
-	<label for="format">format:</label> <select id="format">
-		<option value="prolog" selected>prolog</option>
-		<option value="json">json</option>
-	</select>
-	<br>
-	<button onclick="return resetProlog(),false;">Reset Interpreter</button> <br>
+	<div>
+		<button onclick="return shareCode(),false;">💾 Share</button>
+		<span id="shared"></span>
+	</div>
+	<div>
+		<label for="format">format:</label> <select id="format">
+			<option value="prolog" selected>prolog</option>
+			<option value="json">json</option>
+		</select>
+		<br>
+		<button onclick="return resetProlog(),false;">Reset Interpreter</button> <br>
+	</div>
 </section>
 
 <section id="queries"></section>
@@ -74,7 +102,7 @@ powered by <a href="https://github.com/trealla-prolog/trealla">Trealla Prolog</a
 </footer>
 
 <script type="module">
-import { load, Prolog, toJSON } from 'https://esm.sh/trealla@<?=V query_param(tpl, V) ; default_version(V) ?>?target=es2018';
+import { load, Prolog, toJSON } from 'https://esm.sh/trealla@<?=V query_param(tpl, V) ; default_version(V). ?>?target=es2018';
 
 try {
 	load().then(init);
@@ -236,7 +264,7 @@ function stop(id) {
 window.updateURL = function() {
 	const query = document.getElementById("query");
 	const src = document.getElementById("src");
-	var url = new URL(document.URL);
+	const url = new URL(document.URL);
 	if (src.value.length < 10 * 1024) {
 		url.searchParams.set("src", src.value);
 	} else {
@@ -245,6 +273,25 @@ window.updateURL = function() {
 	url.searchParams.set("q", query.value);
 	url.searchParams.set("v", "0");
 	history.replaceState(query.value, "", url.toString());
+}
+
+window.shareCode = async function() {
+	const query = document.getElementById("query");
+	const src = document.getElementById("src");
+	const url = new URL(document.URL);
+	const data = new FormData();
+	data.append("src", src.value);
+	data.append("q", query.value);
+	const got = await fetch("/trealla_share.html", {
+		method: "POST",
+		headers: { "Content-Type": "application/x-www-form-urlencoded" },
+		body: new URLSearchParams(data).toString()
+	});
+	const html = await got.text();
+	document.getElementById("shared").innerHTML = html;
+	const link = document.querySelector("#shared a:first-of-type").href;
+	if (link)
+		history.replaceState(query.value, "", link);
 }
 </script>
 </body>

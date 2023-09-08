@@ -2,7 +2,7 @@ spin_version = "1"
 name = "prolog-php"
 description = "Prolog Home Page"
 trigger = { type = "http", base = "/" }
-version = "0.2.1"
+version = "0.3.0"
 
 [[component]]
 id = "prolog"
@@ -10,10 +10,11 @@ description = "PHP: Prolog Home Page"
 files = [{ source = "www/", destination = "/"}]
 allowed_http_hosts = ["insecure:allow-all"]
 key_value_stores = ["default"]
+sqlite_databases = ["default"]
 #source = "libtpl-spin.wasm"
 [component.source]
-url = "https://github.com/guregu/trealla/releases/download/v0.17.3/libtpl-spin.wasm"
-digest = "sha256:3c27efe0335b52cad5617638d7d22b527d40f57b22d0410b2ecc8c33ceb1972b"
+url = "https://github.com/guregu/trealla/releases/download/v0.21.0/libtpl-spin.wasm"
+digest = "sha256:cf87d795255cde030510f4894450e1e386b3914eaad5aa2f414aa05348386580"
 [component.trigger]
 route = "/..."
 [component.environment]

@@ -1,0 +1,21 @@
+<?
+default_version("0.16.0").
+
+:- sqlite_open(default, Conn), assertz(sql(Conn)), sqlite_query(Conn, "CREATE TABLE IF NOT EXISTS shares (id TEXT PRIMARY KEY, time TIMESTAMP DEFAULT CURRENT_TIMESTAMP, src TEXT, q TEXT);", [], _, _).
+
+share_code :-
+	current_http_method(post),
+	( form_value(src, Src) -> true ; Src = "" ),
+	( form_value(q, Q) -> true ; Q = "" ),
+	( Src \= "" ; Q \= "" ),
+	sql(Conn),
+    uuid(UUID),
+	sqlite_query(Conn, "INSERT INTO shares (id, src, q) VALUES(?, ?, ?) RETURNING id", [text(UUID), text(Src), text(Q)], Rows, _),
+	Rows = [row(text(ID))],
+    assertz(shared_id(ID)).
+
+:- share_code.
+
+:- sql(Conn), sqlite_close(Conn).
+?>
+<br>Share URL: <a href="/trealla.html?share=<?=ID shared_id(ID) ?>" target="_blank">https://php.energy/trealla.html?share=<?=ID shared_id(ID) ?></a>
