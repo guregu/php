@@ -26,11 +26,16 @@
 	</style>
 </head>
 <?
-default_version("0.16.0").
+% trealla-js version management
 
-:- sqlite_open(default, Conn), assertz(sql(Conn)).
+default_version("0.16.1").
 
-source_code(Src, Q) :-
+npm_version(V) :- query_param(tpl, V).
+npm_version(V) :- default_version(V).
+
+% sharing function
+
+source_query(Src, Q) :-
 	query_param(share, ID),
 	ID \= "",
 	setup_call_cleanup(
@@ -41,11 +46,15 @@ source_code(Src, Q) :-
 		),
 		sqlite_close(Conn)
 	).
-source_code(Src, Q) :-
-	( query_param(src, Src) ; form_value(src, Src) ; Src = "" ),
-	( query_param(q, Q) ; form_value(q, Q) ; Q = "" ).
+source_query(Src, Q) :-
+	param_or_empty(src, Src),
+	param_or_empty(q, Q).
 
-:- source_code(Source, Query), assertz(source(Source)), assertz(query(Query)).
+param_or_empty(K, V) :- query_param(K, V).
+param_or_empty(K, V) :- form_value(K, V).
+param_or_empty(K, "").
+
+:- source_query(Source, Query), assertz(source(Source)), assertz(query(Query)).
 ?>
 <body>
 <h2>Trealla Playground</h2>
@@ -91,7 +100,27 @@ mortal(X) :- person(X)."><?=X source(X). ?></textarea><br>
 	<h2>More Info</h2>
 	<ul>
 		<li><a href="https://github.com/trealla-prolog/trealla">Trealla Prolog</a></li>
-		<li><a href="https://github.com/guregu/trealla-js">trealla-js</a></li>
+		<li>
+			<a href="https://github.com/guregu/trealla-js">trealla-js</a>
+			<ul>
+			<?if npm_version(V). ?>
+				<li>
+					currently using version: <a href="https://www.npmjs.com/package/trealla/v/<?=V ?>" target="_blank"><?=V ?></a>
+				</li>
+				<li>
+					<form action="" method="GET" target="_blank">
+						<label for="tpl-version">use version: </label>
+						<?if query_param(share, Share) ?>
+							<input type="hidden" name="share" value="<?=Share ?>">
+						<?end ?>
+						<input type="text" name="tpl" id="tpl-version" placeholder="<?=V ?>" size=7 required>
+						<input type="submit" value="Go">
+					</form>
+				</li>
+				<li><a href="https://www.npmjs.com/package/trealla?activeTab=versions" target="_blank">all versions</a></li>
+			<?end ?>
+			</ul>
+		</li>
 	</ul>
 	<br>
 	<img src="/assets/trealla.png">
@@ -102,7 +131,7 @@ powered by <a href="https://github.com/trealla-prolog/trealla">Trealla Prolog</a
 </footer>
 
 <script type="module">
-import { load, Prolog, toJSON } from 'https://esm.sh/trealla@<?=V query_param(tpl, V) ; default_version(V). ?>?target=es2018';
+import { load, Prolog, toJSON } from 'https://esm.sh/trealla@<?=V npm_version(V). ?>?target=es2018';
 
 try {
 	load().then(init);
@@ -290,8 +319,9 @@ window.shareCode = async function() {
 	const html = await got.text();
 	document.getElementById("shared").innerHTML = html;
 	const link = document.querySelector("#shared a:first-of-type").href;
-	if (link)
+	if (link) {
 		history.replaceState(query.value, "", link);
+	}
 }
 </script>
 </body>

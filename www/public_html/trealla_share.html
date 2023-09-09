@@ -14,8 +14,12 @@ share_code :-
 	Rows = [row(text(ID))],
     assertz(shared_id(ID)).
 
+shared_id(_) :- fail.
+
 :- share_code.
 
 :- sql(Conn), sqlite_close(Conn).
 ?>
-<br>Share URL: <a href="/trealla.html?share=<?=ID shared_id(ID) ?>" target="_blank">https://php.energy/trealla.html?share=<?=ID shared_id(ID) ?></a>
+<?if shared_id(ID) ?>
+<br>Share URL: <a href="/trealla.html?share=<?=ID ?>" target="_blank">https://php.energy/trealla.html?share=<?=ID ?></a>
+<?end ?>
