@@ -1,5 +1,5 @@
 <?
-default_version("0.16.0").
+:- use_module(library(uuid)).
 
 :- sqlite_open(default, Conn), assertz(sql(Conn)), sqlite_query(Conn, "CREATE TABLE IF NOT EXISTS shares (id TEXT PRIMARY KEY, time TIMESTAMP DEFAULT CURRENT_TIMESTAMP, src TEXT, q TEXT);", [], _, _).
 
@@ -9,10 +9,10 @@ share_code :-
 	( form_value(q, Q) -> true ; Q = "" ),
 	( Src \= "" ; Q \= "" ),
 	sql(Conn),
-    uuid(UUID),
+	uuidv4_string(UUID),
 	sqlite_query(Conn, "INSERT INTO shares (id, src, q) VALUES(?, ?, ?) RETURNING id", [text(UUID), text(Src), text(Q)], Rows, _),
 	Rows = [row(text(ID))],
-    assertz(shared_id(ID)).
+	assertz(shared_id(ID)).
 
 shared_id(_) :- fail.
 
