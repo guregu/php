@@ -5,7 +5,7 @@
 	<title>Trealla Prolog playground</title>
 	<style>
 		body { padding: 10px; }
-		#src { width: 100%; max-width: min(95vw, 1200px); }
+		#src { width: 100%; max-width: min(95vw, 1200px); font-family: monospace; }
 		#result { background-color: #f4f4ff; padding: 0.3em; white-space: pre-wrap; }
 		#result:empty { display: none; }
 		div#prompt { display: flex; gap: 0.3em; width: min(95vw, 1200px) }
@@ -110,7 +110,7 @@ mortal(X) :- person(X)."><?=X source(X). ?></textarea><br>
 				<li>
 					<form action="" method="GET" target="_blank">
 						<label for="tpl-version">use version: </label>
-						<?if query_param(share, Share) ?>
+						<?if query_param(share, Share). ?>
 							<input type="hidden" name="share" value="<?=Share ?>">
 						<?end ?>
 						<input type="text" name="tpl" id="tpl-version" placeholder="<?=V ?>" size=7 required>
