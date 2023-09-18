@@ -28,7 +28,7 @@
 <?
 % trealla-js version management
 
-default_version("0.16.1").
+default_version("0.16.5").
 
 npm_version(V) :- query_param(tpl, V).
 npm_version(V) :- default_version(V).
@@ -70,7 +70,7 @@ mortal(X) :- person(X)."><?=X source(X). ?></textarea><br>
 
 <section id="tinker" style="text-align: right;">
 	<div>
-		<button onclick="return shareCode(),false;">💾 Share</button>
+		<button onclick="return shareCode(this),false;">💾 Share</button>
 		<span id="shared"></span>
 	</div>
 	<div>
@@ -304,23 +304,33 @@ window.updateURL = function() {
 	history.replaceState(query.value, "", url.toString());
 }
 
-window.shareCode = async function() {
+window.shareCode = async function(elem) {
+	elem.disabled = true;
+
+	const shared = document.getElementById("shared");
 	const query = document.getElementById("query");
 	const src = document.getElementById("src");
 	const url = new URL(document.URL);
 	const data = new FormData();
 	data.append("src", src.value);
 	data.append("q", query.value);
-	const got = await fetch("/trealla_share.html", {
-		method: "POST",
-		headers: { "Content-Type": "application/x-www-form-urlencoded" },
-		body: new URLSearchParams(data).toString()
-	});
-	const html = await got.text();
-	document.getElementById("shared").innerHTML = html;
-	const link = document.querySelector("#shared a:first-of-type").href;
-	if (link) {
-		history.replaceState(query.value, "", link);
+	try {
+		shared.textContent = "⏳";
+		const got = await fetch("/trealla_share.html", {
+			method: "POST",
+			headers: { "Content-Type": "application/x-www-form-urlencoded" },
+			body: new URLSearchParams(data).toString()
+		});
+		const html = await got.text();
+		shared.innerHTML = html;
+		const link = document.querySelector("#shared a:first-of-type").href;
+		if (link) {
+			history.replaceState(query.value, "", link);
+		}
+	} catch (ex) {
+		shared.textContent = `Share error: ${ex}`;
+	} finally {
+		elem.disabled = false;
 	}
 }
 </script>
