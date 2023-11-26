@@ -15,6 +15,9 @@ sqlite_databases = ["default"]
 [component.source]
 url = "https://github.com/guregu/trealla/releases/download/v0.21.0/libtpl-spin.wasm"
 digest = "sha256:cf87d795255cde030510f4894450e1e386b3914eaad5aa2f414aa05348386580"
+[component.build]
+watch = ["www/**/*"]
+command = "true"
 [component.trigger]
 route = "/..."
 [component.environment]

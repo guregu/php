@@ -21,5 +21,5 @@ shared_id(_) :- fail.
 :- sql(Conn), sqlite_close(Conn).
 ?>
 <?if shared_id(ID) ?>
-<br>Share URL: <a href="/trealla.html?share=<?=ID ?>" target="_blank">https://php.energy/trealla.html?share=<?=ID ?></a>
+ <a href="/trealla.html?share=<?=ID ?>" target="_blank"><b>Share URL</b></a>
 <?end ?>

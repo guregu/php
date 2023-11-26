@@ -3,32 +3,131 @@
 <head>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Trealla Prolog playground</title>
+	<link rel="stylesheet" type="text/css" href="https://lore.capital/static/font/iosevka-custom.css">
 	<style>
-		body { padding: 10px; }
-		#src { width: 100%; max-width: min(95vw, 1200px); font-family: monospace; }
-		#result { background-color: #f4f4ff; padding: 0.3em; white-space: pre-wrap; }
-		#result:empty { display: none; }
-		div#prompt { display: flex; gap: 0.3em; width: min(95vw, 1200px) }
-		#prompt input[type=text] { width: 72ch; flex-grow: 1; }
-		#prompt label { min-width: 2ch; font-size: 19px; margin-top: auto; }
-		#tinker { padding-top: 0.3em; width: min(95vw, 1200px); }
-		#tinker > * { margin-bottom: 5px; }
-		#tinker { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1em; }
+		body {
+			padding: 10px;
+			background-color: #eeedf1; /*#f1edf0; #dbdbe6;*/
+			--shadow-size: 4px;
+		}
+		html, body, textarea, input, code, pre, button, select {
+			font-family: 'Iosevka Custom Web', monospace;
+			-webkit-font-smoothing: antialiased;
+		}
+
+		h1, h2 {
+			font-stretch: expanded;
+		}
+
+		#src, .query-box, #tinker {
+			width: 100%;
+			max-width: min(95vw, 1200px);
+		}
+
+		#prompt {
+			display: flex; gap: 0.3em; width: min(100%, 1200px); margin-right: 10px;
+		}
+		#prompt input[type=text] {
+			width: 72ch;
+			flex-grow: 1;
+			border: 0.1px solid black;
+			padding-left: 1ch;
+		}
+		#prompt label {
+			min-width: 2ch;
+			font-size: 17px;
+			margin-top: auto;
+			line-height: 1.4em;
+		}
+
+		#tinker {
+			padding-top: 0.3em;
+			width: min(100%, 1200px);
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: space-between;
+			gap: 1em;
+		}
+		#tinker > * {
+			margin-bottom: 5px;
+		}
 		#tinker > :nth-child(1) { text-align: left;	}
 		#tinker > :nth-child(2) { text-align: right; }
-		input, textarea, pre { font-size: 16px; tab-size: 4; quotes: "'" "'"; }
-		pre { margin: 0; }
+
+		input, textarea, pre 
+			 font-size: 14px;
+			 tab-size: 4; quotes: "'" "'";
+			 font-weight: 300;
+		}
+		input, textarea, button {
+			border: 0.1px solid black;
+		}
+		pre { margin: 0; white-space: pre-wrap; word-break: break-word; }
+		button:hover {
+			cursor: pointer;
+		}
+
+		body:has(#query-btn:disabled) {
+			cursor: progress !important;
+		}
+
+		@media(hover:none) {
+			input, textarea, pre, select, select:focus {
+				font-size: 16px;
+			}
+		}
+
+		@media(hover:hover) {
+			button, input[type=submit]/*, textarea*/ { 
+				--shadow-color: rgba(0, 0, 0, 0.3);
+				appearance: none;
+				border: 0.1px solid black;
+				background-color: #efefef;
+				box-shadow: var(--shadow-size) var(--shadow-size) 0px 1px var(--shadow-color);
+				margin-bottom: 4px;
+			}
+			:is(button, input[type=submit]):is(:hover, :focus) { 
+				--shadow-color: rgba(0, 0, 0, 0.7);
+			}
+			:is(button, input[type=submit]):active { 
+				transform: translate(var(--shadow-size), var(--shadow-size));
+				box-shadow: unset;
+			}
+			#prompt input[type=text] {
+				margin-left: 4px;
+			}
+		}
+
+		#result {
+			background-color: #f4f4ff;
+			padding: 0.3em;
+			white-space: pre-wrap;
+		}
+		#result:empty { display: none; }
+
 		.query-box[data-state="done"] .query-buttons { display: none; }
-		.query-box { background-color: #f4f4ff; padding:0.3em; margin-top:0.3em; border: 1px solid grey; }
-		menu { list-style-type: none; padding-inline: 0; margin-block: 0; margin-top: 0.3em; }
+		.query-box {
+			background-color: #f4f4ff;
+			padding: 0.3em 0 0.3em 0.3em;
+			margin-top:0.3em;
+			border: 0.1px solid grey;
+		}
+
+		menu {
+			list-style-type: none;
+			padding-inline: 0;
+			margin-block: 0;
+			margin-top: 0.3em;
+		}
 		menu li { display: inline; }
+
 		img { max-width: 100%; }
 	</style>
 </head>
 <?
 % trealla-js version management
 
-default_version("0.17.10").
+default_version("0.17.14").
 
 npm_version(V) :- query_param(tpl, V).
 npm_version(V) :- default_version(V).
@@ -59,6 +158,19 @@ param_or_empty(K, "").
 <body>
 <h2>Trealla Playground</h2>
 <p>Run Prolog in your browser. Press escape then tab to escape the text editor.</p>
+<section id="tinker" style="text-align: right;">
+	<div>
+		<button onmousedown="return shareCode(this),false;">💾 Share</button>
+		<span id="shared"></span>
+	</div>
+	<div>
+		<label for="format">format:</label> <select id="format">
+			<option value="prolog" selected>prolog</option>
+			<option value="json">json</option>
+		</select>
+		<button onmousedown="return resetProlog(),false;">Reset Interpreter</button> <br>
+	</div>
+</section>
 <form onsubmit="return ask && ask(), false;">
 	<textarea cols=80 rows=20 id="src" spellcheck="false" placeholder="person(socrates).
 mortal(X) :- person(X)."><?=X source(X). ?></textarea><br>
@@ -67,21 +179,6 @@ mortal(X) :- person(X)."><?=X source(X). ?></textarea><br>
 		<input type="submit" value="Loading..." id="query-btn" spellcheck="false" disabled>
 	</div>
 </form>
-
-<section id="tinker" style="text-align: right;">
-	<div>
-		<button onclick="return shareCode(this),false;">💾 Share</button>
-		<span id="shared"></span>
-	</div>
-	<div>
-		<label for="format">format:</label> <select id="format">
-			<option value="prolog" selected>prolog</option>
-			<option value="json">json</option>
-		</select>
-		<br>
-		<button onclick="return resetProlog(),false;">Reset Interpreter</button> <br>
-	</div>
-</section>
 
 <section id="queries"></section>
 
@@ -123,7 +220,9 @@ mortal(X) :- person(X)."><?=X source(X). ?></textarea><br>
 		</li>
 	</ul>
 	<br>
+	<!--
 	<img src="/assets/trealla.png">
+	-->
 </section>
 
 <footer>
@@ -185,6 +284,23 @@ function init() {
 	document.getElementById("query-btn").value = "Query";
 }
 
+document.addEventListener("keyup", function(event) {
+	const key = event.code;
+	const target = event.target;
+
+	if (isTextInput(target))
+		return;
+
+	switch (key) {
+	case "Semicolon":
+		event.preventDefault();
+		event.stopPropagation();
+		const latest = document.querySelector(".query-box:not([data-state=done])");
+		if (latest) next(latest.dataset.id);
+		break;
+	}
+});
+
 window.resetProlog = function() {
 	init();
 }
@@ -213,11 +329,12 @@ async function run() {
 	const elem = document.getElementById("query-tmpl").content.cloneNode(true);
 	const box = elem.querySelector(".query-box");
 	box.id = `query-${id}`;
+	box.dataset.id = id;
 	box.dataset.format = format;
 	elem.querySelector(".query-result").textContent = "?- " + query + "\n";
-	elem.querySelector(".query-next").onclick = next.bind(elem, id);
-	elem.querySelector(".query-all").onclick = all.bind(elem, id);
-	elem.querySelector(".query-stop").onclick = stop.bind(elem, id);
+	elem.querySelector(".query-next").onmousedown = next.bind(elem, id);
+	elem.querySelector(".query-all").onmousedown = all.bind(elem, id);
+	elem.querySelector(".query-stop").onmousedown = stop.bind(elem, id);
 	document.getElementById("queries").prepend(elem);
 	await next(id);
 }
@@ -332,6 +449,18 @@ window.shareCode = async function(elem) {
 	} finally {
 		elem.disabled = false;
 	}
+}
+
+
+function isTextInput(elem) {
+	if (!elem || !("tagName" in elem))
+		return false;
+
+	return (
+		(elem.tagName === "TEXTAREA") ||
+		(elem.tagName === "INPUT" && elem.type !== "submit") ||
+		("isContentEditable" in elem && elem.isContentEditable)
+	);
 }
 </script>
 </body>
