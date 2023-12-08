@@ -54,21 +54,24 @@
 		#tinker > :nth-child(1) { text-align: left;	}
 		#tinker > :nth-child(2) { text-align: right; }
 
-		input, textarea, pre 
-			 font-size: 14px;
-			 tab-size: 4; quotes: "'" "'";
+		input, textarea, pre {
+			 tab-size: 4;
+			 quotes: "'" "'";
 			 font-weight: 300;
 		}
 		input, textarea, button {
 			border: 0.1px solid black;
 		}
-		pre { margin: 0; white-space: pre-wrap; word-break: break-word; }
+		pre {
+			margin: 0;
+			white-space: pre-wrap;
+			word-break: break-word;
+		}
 		button:hover {
 			cursor: pointer;
 		}
-
 		body:has(#query-btn:disabled) {
-			cursor: progress !important;
+			cursor: progress;
 		}
 
 		@media(hover:none) {
@@ -83,7 +86,7 @@
 				appearance: none;
 				border: 0.1px solid black;
 				background-color: #efefef;
-				box-shadow: var(--shadow-size) var(--shadow-size) 0px 1px var(--shadow-color);
+				box-shadow: var(--shadow-size) var(--shadow-size) 0 1px var(--shadow-color);
 				margin-bottom: 4px;
 			}
 			:is(button, input[type=submit]):is(:hover, :focus) { 
@@ -127,7 +130,7 @@
 <?
 % trealla-js version management
 
-default_version("0.17.14").
+default_version("0.17.17").
 
 npm_version(V) :- query_param(tpl, V).
 npm_version(V) :- default_version(V).
@@ -230,7 +233,7 @@ powered by <a href="https://github.com/trealla-prolog/trealla">Trealla Prolog</a
 </footer>
 
 <script type="module">
-import { load, Prolog, toJSON } from 'https://esm.sh/trealla@<?=V npm_version(V). ?>?target=es2018';
+import { load, Prolog, toJSON, FORMATS } from 'https://esm.sh/trealla@<?=V npm_version(V). ?>?target=es2018';
 
 try {
 	load().then(init);
@@ -291,12 +294,21 @@ document.addEventListener("keyup", function(event) {
 	if (isTextInput(target))
 		return;
 
+	const takeover = () => { event.preventDefault(); event.stopPropagation(); }
+
 	switch (key) {
 	case "Semicolon":
-		event.preventDefault();
-		event.stopPropagation();
+		takeover();
 		const latest = document.querySelector(".query-box:not([data-state=done])");
 		if (latest) next(latest.dataset.id);
+		break;
+	case "F1":
+		takeover();
+		console.log("hello");
+		break;
+	case "F2":
+		takeover();
+		console.log("sup");
 		break;
 	}
 });
@@ -314,17 +326,37 @@ window.ask = async function ask() {
 	}
 }
 
+class Toplevel {
+	id;
+	dec;
+	constructor(id) {
+		this.id = id;
+		this.dec = new TextDecoder();
+	}
+	query(_, goal, bind) {
+		return FORMATS.prolog.query(null, goal, bind);
+	}
+	parse(pl, status, stdout, stderr, options) {
+		return {
+			'$format': 'custom',
+			id: this.id,
+			status,
+			stdout: FORMATS.prolog.parse(pl, status, stdout, stderr, options),
+			stderr: this.dec.decode(stderr)
+		};
+	}
+	truth(pl, status, stderr, options) {
+		return {'$format': 'custom', id: this.id, status, stdout: status ? "true" : "false", stderr: this.dec.decode(stderr)};
+	}
+}
+
 let ID = 0;
 async function run() {
+	const id = ++ID;
 	const query = getQuery();
 	const src = document.getElementById("src").value;
 	const format = document.getElementById("format").value;
-	let text = "?- " + query + "\n";
-	let n = 0;
-	const encode = format == "prolog" ? {dot: false} : undefined;
-	const q = pl.query(query, {program: src, format: format, encode: encode});
-	const id = ++ID;
-	QUERIES[id] = q;
+	const toplevel = format == "prolog" ? new Toplevel(id) : format;
 
 	const elem = document.getElementById("query-tmpl").content.cloneNode(true);
 	const box = elem.querySelector(".query-box");
@@ -336,6 +368,13 @@ async function run() {
 	elem.querySelector(".query-all").onmousedown = all.bind(elem, id);
 	elem.querySelector(".query-stop").onmousedown = stop.bind(elem, id);
 	document.getElementById("queries").prepend(elem);
+
+	let text = "?- " + query + "\n";
+	let n = 0;
+	const encode = format == "prolog" ? {dot: false} : undefined;
+	const q = pl.query(query, {program: src, format: toplevel, encode: encode});
+	QUERIES[id] = q;
+
 	await next(id);
 }
 
@@ -390,8 +429,11 @@ async function redo(id, elem) {
 	const n = Number(elem.dataset.n ?? 0);
 	if (typeof result === "string")
 		stdout.textContent += (n > 0 ? "\n;  " : "   ") + result;
-	else
+	else if ('$format' in result) {
+		stdout.textContent += `${(n > 0 ? "\n" : "") + result.stderr.trim()}${(!!result.stderr ? "\n" : "") + (n > 0 ? ";  " : "   ") + result.stdout.trim()}`;
+	} else {
 		stdout.textContent += toJSON(result, " ") + "\n";
+	}
 	elem.dataset.n = n+1;
 	return true;
 }
