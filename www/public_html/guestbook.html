@@ -77,8 +77,8 @@ postgres(PG) :-
 	-> postgres_open_url(URL, PG)
 	;  postgres_open("localhost", PG, [port(32768), user("postgres"), password("password"), dbname("postgres")])
 	),
-	%postgres_execute(PG, "CREATE TABLE IF NOT EXISTS guestbook (id serial primary key, time timestamp default CURRENT_TIMESTAMP, author text, msg text);", [], _).
-	true.
+	postgres_execute(PG, "CREATE TABLE IF NOT EXISTS guestbook (id serial primary key, time timestamp default CURRENT_TIMESTAMP, author text, msg text);", [], _).
+	%true.
 
 posts(Posts) :-
 	postgres(PG),
@@ -86,7 +86,12 @@ posts(Posts) :-
 
 spamlike  --> ..., spam_word, ... .
 spam_word --> "www." | "https:" | "http:".
-spam_word --> { getenv("BANNED_WORDS", Banned) }, Banned.
+spam_word --> { banned_Word(Word) }, Word.
+
+banned_Word(Word) :-
+	getenv("BANNED_WORDS", Banned),
+	split_string(Banned, ",", "", Words),
+	member(Word, Words).
 
 spamlike(Cs) :-
 	once(phrase(spamlike, Cs)).
@@ -95,6 +100,7 @@ add_post :-
 	current_http_method(post),
 	form_value(author, Author),
 	form_value(message, Message),
+	\+spamlike(Author),
 	\+spamlike(Message),
 	postgres(PG),
 	postgres_execute(PG, "INSERT INTO guestbook (author, msg) VALUES($1, $2)", [string(Author), string(Message)], _).
