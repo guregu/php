@@ -6,8 +6,8 @@
 	<h3>Prolog flags</h3>
 	<table>
 		<tr><th>Flag</th><th>Value</th></tr>
-	<?findall K = version_git, current_prolog_flag(K, V)
-			; current_prolog_flag(K, V). ?>
+		<tr><td>version_git</td><td><?=Git current_prolog_flag(version_git, Git) ?></td></tr>
+	<?findall findall(X-Y, current_prolog_flag(X, Y), Flags), member(K-V, Flags) ?>
 		<tr><td><?=K ?></td><td><?=V ?></td></tr>
 	<?end ?>
 	</table>

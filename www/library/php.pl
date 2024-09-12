@@ -11,6 +11,9 @@
 ]).
 :- use_module(library(dcgs)).
 :- use_module(library(format)).
+:- use_module(library(charsio)).
+:- use_module(library(lists)).
+:- use_module(library(spin)).
 
 :- dynamic(env/2).
 :- dynamic(query_param/2).
@@ -59,10 +62,10 @@ code([H|T]) --> [H], { H \= '?' }, code(T).
 code([]) --> [].
 code_nonbracket([H|T]) --> [H], { H \= '>' }, code(T).
 
-nonwhite([X|Cs]) --> [X], { atom(X), \+char_type(X, white), X \= '\n', X \= '\t' }, nonwhite(Cs).
+nonwhite([X|Cs]) --> [X], { atom(X), \+char_type(X, whitespace), X \= '\n', X \= '\t' }, nonwhite(Cs).
 nonwhite([]) --> [].
 
-whitespace --> [X], { atom(X), char_type(X, white) }, (whitespace | []).
+whitespace --> [X], { atom(X), char_type(X, whitespace) }, (whitespace | []).
 whitespace --> " " | "\n" | "\t".
 
 clauses(Cs) --> "%", seq(_), "\n", clauses(Cs). % ignore comments
@@ -113,18 +116,18 @@ exec(Vars, Block) :-
 exec_capture :-
 	exec_flush,
 	current_output(S),
-	nb_setval(capture, S),
+	bb_put(capture, S),
 	'$memory_stream_create'(Cap, []),
 	set_output(Cap).
 
 exec_flush :-
-	nb_current(capture, S),
+	bb_get(capture, S),
 	current_output(Cap),
 	'$memory_stream_to_chars'(Cap, Cs),
 	close(Cap),
 	ignore(echo(S, Cs)),
 	set_output(S),
-	nb_delete(capture),
+	bb_delete(capture, _),
 	flush_output,
 	!.
 exec_flush :- flush_output.
@@ -193,7 +196,7 @@ exec_(Vars0, if(Condition, Blocks)) :-
 exec_(Vars0, findall(G, Blocks)) :-
 	read_term_from_chars(G, Goal, [variable_names(Vars1)]),
 	merge_vars(Vars0, Vars1, Vars),
-	findall(_, (call(Goal), maplist(exec(Vars), Blocks)), _).
+	findall(Goal, (Goal, maplist(exec(Vars), Blocks)), _Gs).
 
 % raw text
 exec_(_, text(Text)) :-
@@ -234,6 +237,7 @@ render(File) :-
 	)).
 
 prolog_call(':-'(Goal)) :- ignore(Goal).
+prolog_call((Head --> Body)) :- dcgs:dcg_rule((Head --> Body), Goal), user:assertz(Goal).
 prolog_call(Goal) :- user:assertz(Goal).
 
 phpinfo :- render("library/phpinfo.html").

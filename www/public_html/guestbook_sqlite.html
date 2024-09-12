@@ -80,8 +80,12 @@ posts(Posts) :-
 	sqlite(Conn),
 	sqlite_query(Conn, "SELECT author, msg, strftime('%Y-%m-%d %H:%M:%S', time) FROM guestbook ORDER BY id DESC;", [], Posts, _).
 
+spamlike  --> ..., spam_word, ... .
+spam_word --> "www." | "https:" | "http:".
+spam_word --> { getenv("BANNED_WORDS", Banned) }, Banned.
+
 spamlike(Cs) :-
-	once(phrase((..., ("www."|"https:"|"http:"), ...), Cs)).
+	once(phrase(spamlike, Cs)).
 
 add_post :-
 	current_http_method(post),

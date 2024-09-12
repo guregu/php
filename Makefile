@@ -34,7 +34,7 @@ run: build
 	$(SPINFLAGS) spin up -f $(SPINCFG)
 
 watch: build
-	nodemon --watch cgi-bin --watch . --ext pl,html,wasm,toml --verbose --legacy-watch --signal SIGINT --exec '$(SPINFLAGS) spin up --file $(SPINCFG)'
+	spin watch --skip-build --direct-mounts
 
 container: build
 	nixpacks build . --name php --pkgs wget curl \

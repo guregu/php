@@ -1,37 +1,45 @@
-spin_version = "1"
-name = "prolog-php"
-description = "Prolog Home Page"
-trigger = { type = "http", base = "/" }
-version = "0.3.0"
+spin_manifest_version = 2
 
-[[component]]
-id = "prolog"
+[application]
+name = "prolog-php"
+version = "0.5.0"
+description = "Prolog Home Page"
+[application.trigger.http]
+base = "/"
+
+[[trigger.http]]
+id = "trigger-prolog"
+component = "prolog"
+route = "/..."
+[[trigger.http]]
+id = "trigger-assets"
+component = "assets"
+route = "/assets/..."
+
+[component.prolog]
 description = "PHP: Prolog Home Page"
-files = [{ source = "www/", destination = "/"}]
-allowed_http_hosts = ["insecure:allow-all"]
+files = [{ source = "www/", destination = "/" }]
+allowed_outbound_hosts = ["redis://*:*", "mysql://*:*", "postgres://*:*", "http://*:*", "https://*:*", "http://self"]
 key_value_stores = ["default"]
 sqlite_databases = ["default"]
+# for local testing:
 #source = "libtpl-spin.wasm"
-[component.source]
-url = "https://github.com/guregu/trealla/releases/download/v0.21.0/libtpl-spin.wasm"
-digest = "sha256:cf87d795255cde030510f4894450e1e386b3914eaad5aa2f414aa05348386580"
-[component.build]
-watch = ["www/**/*"]
+# official release
+[component.prolog.source]
+url = "https://github.com/guregu/trealla/releases/download/v0.26.7/libtpl-spin.wasm"
+digest = "sha256:41f9006515508b76820471b28954aa2c597dc5a88729b5a9c5694b7186e5b7fb"
+[component.prolog.build]
 command = "true"
-[component.trigger]
-route = "/..."
-[component.environment]
-#INIT = "init-custom.pl"
+watch = ["www/**/*"]
+[component.prolog.environment]
 TPL_LIBRARY_PATH = "library"
 PHP_ROOT = "public_html"
-#POSTGRES_URL = "postgres://root:password@example.com/neondb"
+BANNED_WORDS = "boob"
 
-[[component]]
-id = "assets"
+[component.assets]
 description = "static files"
-files = [{ source = "www/assets/", destination = "/"}]
-[component.source]
-url = "https://github.com/fermyon/spin-fileserver/releases/download/v0.0.2/spin_static_fs.wasm"
-digest = "sha256:65456bf4e84cf81b62075e761b2b0afaffaef2d0aeda521b245150f76b96421b"
-[component.trigger]
-route = "/assets/..."
+files = [{ source = "www/assets/", destination = "/" }]
+[component.assets.source]
+url = "https://github.com/fermyon/spin-fileserver/releases/download/v0.3.0/spin_static_fs.wasm"
+digest = "sha256:ef88708817e107bf49985c7cefe4dd1f199bf26f6727819183d5c996baa3d148"
+

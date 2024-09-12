@@ -77,15 +77,19 @@ postgres(PG) :-
 	-> postgres_open_url(URL, PG)
 	;  postgres_open("localhost", PG, [port(32768), user("postgres"), password("password"), dbname("postgres")])
 	),
-	postgres_execute(PG, "CREATE TABLE IF NOT EXISTS guestbook (id serial primary key, time timestamp default CURRENT_TIMESTAMP, author text, msg text);", [], _).
-	%true.
+	%postgres_execute(PG, "CREATE TABLE IF NOT EXISTS guestbook (id serial primary key, time timestamp default CURRENT_TIMESTAMP, author text, msg text);", [], _).
+	true.
 
 posts(Posts) :-
 	postgres(PG),
 	postgres_query(PG, "SELECT author, msg, to_char(time, 'YYYY-MM-DD HH24:MM:SS') FROM guestbook ORDER BY id DESC;", [], Posts, _).
 
+spamlike  --> ..., spam_word, ... .
+spam_word --> "www." | "https:" | "http:".
+spam_word --> { getenv("BANNED_WORDS", Banned) }, Banned.
+
 spamlike(Cs) :-
-	once(phrase((..., ("www."|"https:"|"http:"), ...), Cs)).
+	once(phrase(spamlike, Cs)).
 
 add_post :-
 	current_http_method(post),

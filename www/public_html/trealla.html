@@ -130,7 +130,7 @@
 <?
 % trealla-js version management
 
-default_version("0.17.17").
+default_version("0.20.12").
 
 npm_version(V) :- query_param(tpl, V).
 npm_version(V) :- default_version(V).
@@ -233,7 +233,7 @@ powered by <a href="https://github.com/trealla-prolog/trealla">Trealla Prolog</a
 </footer>
 
 <script type="module">
-import { load, Prolog, toJSON, FORMATS } from 'https://esm.sh/trealla@<?=V npm_version(V). ?>?target=es2018';
+import { load, Prolog, toJSON, FORMATS } from 'https://esm.sh/trealla@<?=V npm_version(V). ?>?target=es2022';
 
 try {
 	load().then(init);
@@ -314,6 +314,7 @@ document.addEventListener("keyup", function(event) {
 });
 
 window.resetProlog = function() {
+	prevSrc = undefined;
 	init();
 }
 
@@ -351,6 +352,7 @@ class Toplevel {
 }
 
 let ID = 0;
+let prevSrc;
 async function run() {
 	const id = ++ID;
 	const query = getQuery();
@@ -372,10 +374,11 @@ async function run() {
 	let text = "?- " + query + "\n";
 	let n = 0;
 	const encode = format == "prolog" ? {dot: false} : undefined;
-	const q = pl.query(query, {program: src, format: toplevel, encode: encode});
+	const q = pl.query(query, {program: src === prevSrc ? undefined : src, format: toplevel, encode: encode});
 	QUERIES[id] = q;
 
 	await next(id);
+	prevSrc = src;
 }
 
 function getQuery() {
