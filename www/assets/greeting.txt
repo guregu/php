@@ -1,0 +1,2 @@
+hello world
+files in this folder will be served using spin's fileserver, accessible at /assets/

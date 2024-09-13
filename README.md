@@ -13,10 +13,9 @@ Head on over to our beautiful homepage at [php.energy](https://php.energy/). Sou
 
 0. ~~Reconsider whether you really want to do this~~.
 1. [Install Spin](https://spin.fermyon.dev/quickstart/).
-2. For hot reloading, [install nodemon](https://www.npmjs.com/package/nodemon) (optional).
-3. Clone this repo.
-4. Configure the www root in `spin.toml`
-5. Put PHP scripts or Prolog programs in `public_html`.
+2. Clone this repo.
+3. Configure the www root in `spin.toml`
+4. Put PHP scripts or Prolog programs in `public_html`.
 
 ## Run
 
@@ -32,19 +31,20 @@ As of recently, you can deploy to the beta version of Fermyon cloud for free. Ne
 
 ## Container Build
 
-See: [Spin docs on OCI images](https://developer.fermyon.com/spin/spin-oci)
+See: [Spin docs on OCI images](https://developer.fermyon.com/spin/spin-oci). Or MacGyver an image with [nixpacks](https://nixpacks.com/docs/install) and `make container` (or `make ARCH=aarch64 container` for ARM).
 
 ## How does it work?
 
-It just runs the WebAssembly version of Trealla Prolog and writes CGI ([RFC 3875](https://datatracker.ietf.org/doc/html/rfc3875)) output to stdout.
+It just runs the WebAssembly version of Trealla Prolog and ~~writes CGI ([RFC 3875](https://datatracker.ietf.org/doc/html/rfc3875)) output to stdout~~
+[handles the Spin HTTP wasm component](https://github.com/guregu/trealla/blob/a53e03f5aedac92f9b8c8273360aee171fe6d160/src/wasm/spin.c#L45).
 
 See the README in the www folder for more info on the file structure.
 
-Currently this uses a fork of Trealla hosted on WAPM, but it works with upstream Trealla too.
 
 ## What's next?
 
-This currently uses the CGI mode of Spin, but with a little bit of effort we could use the fancy APIs and get outgoing HTTP and Redis and whatnot.
+~~This currently uses the CGI mode of Spin, but with a little bit of effort we could use the fancy APIs and get outgoing HTTP and Redis and whatnot.~~ (Done?)
+
 It'd be cool to get some kind of magic persistence going.
 
 ## File Layout
@@ -141,15 +141,44 @@ Assert facts and rules as if consulting a Prolog program. Directive syntax will 
 
 ## API
 
-### module(cgi)
+### module(spin)
 
-#### env/2
+See: [spin.pl](https://github.com/guregu/trealla/blob/main/library/spin.pl).
 
-Envrionment variables.
-
-#### query_param/2
-
-Query parameters (from URL).
+```prolog
+:- module(spin, [
+	% Inbound HTTP
+	% Request routing
+	http_handler/4,
+	% Request info
+	current_http_uri/1, current_http_method/1, current_http_body/1,
+	current_http_param/2, current_http_header/2,
+	% Response output
+	http_header_set/2,
+	http_body_output/1,
+	html_content/0, html_content/1,
+	text_content/0, text_content/1,
+	prolog_content/0, prolog_content/1,
+	% Outbound HTTP
+	http_fetch/3,
+	% Key-value store
+	store_open/1, store_open/2,
+	store_close/1,
+	store_get/3, store_exists/2,
+	store_keys/2,
+	store_set/3, store_delete/2,
+	% PostgreSQL
+	postgres_open/3,
+	postgres_open_url/2,
+	postgres_execute/4,
+	postgres_query/5,
+	% SQLite
+	sqlite_open/2,
+	sqlite_query/5,
+	sqlite_close/1,
+	...
+]).
+```
 
 ### module(php)
 
