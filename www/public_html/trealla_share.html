@@ -9,7 +9,7 @@ share_code :-
 	( form_value(q, Q) -> true ; Q = "" ),
 	( Src \= "" ; Q \= "" ),
 	sql(Conn),
-	uuidv4_string(UUID),
+	uuid:uuidv4_string(UUID),
 	sqlite_query(Conn, "INSERT INTO shares (id, src, q) VALUES(?, ?, ?) RETURNING id", [text(UUID), text(Src), text(Q)], Rows, _),
 	Rows = [row(text(ID))],
 	assertz(shared_id(ID)).
