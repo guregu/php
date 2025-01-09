@@ -1,7 +1,9 @@
 <?
 :- use_module(library(uuid)).
 
-:- sqlite_open(default, Conn), assertz(sql(Conn)), sqlite_query(Conn, "CREATE TABLE IF NOT EXISTS shares (id TEXT PRIMARY KEY, time TIMESTAMP DEFAULT CURRENT_TIMESTAMP, src TEXT, q TEXT);", [], _, _).
+:- sqlite_open(default, Conn),
+	assertz(sql(Conn)),
+	sqlite_query(Conn, "CREATE TABLE IF NOT EXISTS shares (id TEXT PRIMARY KEY, time TIMESTAMP DEFAULT CURRENT_TIMESTAMP, src TEXT, q TEXT);", [], _, _).
 
 share_code :-
 	current_http_method(post),

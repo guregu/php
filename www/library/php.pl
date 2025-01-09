@@ -4,7 +4,7 @@
 	render/1,
 	echo/1,
 	htmlspecialchars//1,
-	html_escape/2, 
+	html_escape/2,
 	query_param/2,
 	form_value/2,
 	phpinfo/0
@@ -236,9 +236,13 @@ render(File) :-
 		format(http_body, "Error: ~w", [Error])
 	)).
 
-prolog_call(':-'(Goal)) :- ignore(Goal).
-prolog_call((Head --> Body)) :- dcgs:dcg_rule((Head --> Body), Goal), user:assertz(Goal).
-prolog_call(Goal) :- user:assertz(Goal).
+prolog_call(':-'(Goal)) :- user_module, ignore(Goal).
+prolog_call((Head --> Body)) :- user_module, dcgs:dcg_rule((Head --> Body), Goal), assertz(Goal).
+prolog_call(Goal) :- user_module, assertz(Goal).
+
+% this is kinda hacky, ideally we'd build a module then use it (TODO: that)
+% instead we force the module context to be user
+user_module :- '$module'(user).
 
 phpinfo :- render("library/phpinfo.html").
 
@@ -266,7 +270,7 @@ echo(S, X) :-
 	write_term_to_chars(X, [], Cs),
 	echo(S, Cs),
 	!.
-	
+
 echo_unsafe([]) :- !.
 echo_unsafe('') :- !.
 echo_unsafe(String) :-
@@ -286,10 +290,10 @@ logf(Fmt, Args) :-
 	flush_output(stderr).
 
 file_root(Root) :-
-    file_root_(Root), 
+    file_root_(Root),
     append(_, "/", Root).
 file_root(Root) :-
-    file_root_(Root0), 
+    file_root_(Root0),
     append(Root0, "/", Root).
 file_root_(Root) :- getenv('PHP_ROOT', Root0), atom_chars(Root0, Root).
 file_root_("public_html").

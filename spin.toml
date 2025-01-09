@@ -19,15 +19,22 @@ route = "/assets/..."
 [component.prolog]
 description = "PHP: Prolog Home Page"
 files = [{ source = "www/", destination = "/" }]
-allowed_outbound_hosts = ["redis://*:*", "mysql://*:*", "postgres://*:*", "http://*:*", "https://*:*", "http://self"]
+allowed_outbound_hosts = [
+	"redis://*:*",
+	"mysql://*:*",
+	"postgres://*:*",
+	"http://*:*",
+	"https://*:*",
+	"http://self",
+]
 key_value_stores = ["default"]
 sqlite_databases = ["default"]
 # for local testing:
 #source = "libtpl-spin.wasm"
 # official release
 [component.prolog.source]
-url = "https://github.com/guregu/trealla/releases/download/v0.26.7/libtpl-spin.wasm"
-digest = "sha256:41f9006515508b76820471b28954aa2c597dc5a88729b5a9c5694b7186e5b7fb"
+url = "https://github.com/guregu/trealla/releases/download/v0.27.17/libtpl-spin.wasm"
+digest = "sha256:ca5db52f4b36d011cca713a1491e338b003473aadebf61882400a0863a6d6e93"
 [component.prolog.build]
 command = "true"
 watch = ["www/**/*"]
