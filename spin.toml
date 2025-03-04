@@ -2,7 +2,7 @@ spin_manifest_version = 2
 
 [application]
 name = "prolog-php"
-version = "0.5.0"
+version = "0.5.1"
 description = "Prolog Home Page"
 [application.trigger.http]
 base = "/"
@@ -33,8 +33,8 @@ sqlite_databases = ["default"]
 #source = "libtpl-spin.wasm"
 # official release
 [component.prolog.source]
-url = "https://github.com/guregu/trealla/releases/download/v0.27.17/libtpl-spin.wasm"
-digest = "sha256:ca5db52f4b36d011cca713a1491e338b003473aadebf61882400a0863a6d6e93"
+url = "https://github.com/guregu/trealla/releases/download/v0.30.4/libtpl-spin.wasm"
+digest = "sha256:49acf36b1bcaf96365eb2ac961668def9ccf0d6ddf34f78d8625bfa7c0a5b4ae"
 [component.prolog.build]
 command = "true"
 watch = ["www/**/*"]

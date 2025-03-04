@@ -86,7 +86,11 @@ posts(Posts) :-
 
 spamlike  --> ..., spam_word, ... .
 spam_word --> "www." | "https:" | "http:".
+spam_word --> cyrillic.
 spam_word --> { banned_Word(Word) }, Word.
+
+% sorry, too much russian spam
+cyrillic --> "А" | "а" | "Б" | "б" | "В" | "в" | "Г" | "г" | "Д" | "д" | "Е" | "е" | "Ж" | "ж" | "З" | "з" | "И" | "и" | "Й" | "I" |"й" | "I" |"К" | "к" | "Л" | "л" | "М" | "м" | "Н" | "н" | "О" | "о" | "П" | "п" | "Р" | "р" | "С" | "с" | "Т" | "т" | "У" | "у" | "Ф" | "ф" | "Х" | "х" | "Ц" | "ц" | "Ч" | "ч" | "Ш" | "ш" | "Щ" | "щ" | "Ъ" | "ъ" | "Ы" | "ы" | "Ь" | "ь" | "Э" | "э" | "Ю" | "ю" | "Я" | "я".
 
 banned_Word(Word) :-
 	getenv("BANNED_WORDS", Banned),

@@ -1,0 +1,30 @@
+<?
+:- use_module(library(uuid)).
+
+:- sqlite_open(default, Conn),
+	assertz(sql(Conn)),
+	sqlite_query(Conn, "CREATE TABLE IF NOT EXISTS shares (id TEXT PRIMARY KEY, time TIMESTAMP DEFAULT CURRENT_TIMESTAMP, src TEXT, q TEXT);", [], _, _).
+
+share_code :-
+	current_http_method(post),
+	( form_value(src, Src) -> true ; Src = "" ),
+	( form_value(q, Q) -> true ; Q = "" ),
+	( Src \= "" ; Q \= "" ),
+	sql(Conn),
+	uuid:uuidv4_string(UUID),
+	sqlite_query(Conn, "INSERT INTO shares (id, src, q) VALUES(?, ?, ?) RETURNING id", [text(UUID), text(Src), text(Q)], Rows, _),
+	Rows = [row(text(ID))],
+	assertz(shared_id(ID)).
+
+shared_id(_) :- fail.
+
+playground_path("/scryer.html") :- form_value(flavor, "scryer").
+playground_path("/trealla.html").
+
+:- share_code.
+
+:- sql(Conn), sqlite_close(Conn).
+?>
+<?if shared_id(ID) ?>
+ <a href="<?=Path playground_path(Path). ?>?share=<?=ID ?>" target="_blank">🔗 Share URL</a>
+<?end ?>

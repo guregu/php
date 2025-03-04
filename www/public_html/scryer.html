@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Trealla Prolog playground</title>
+	<title>Scryer Prolog playground</title>
 	<link rel="stylesheet" type="text/css" href="https://lore.capital/static/font/iosevka-custom.css">
 	<style>
 		body {
@@ -128,9 +128,9 @@
 	</style>
 </head>
 <?
-% trealla-js version management
+% version management
 
-default_version("0.22.4").
+default_version("0.4.1").
 
 npm_version(V) :- query_param(tpl, V).
 npm_version(V) :- default_version(V).
@@ -159,7 +159,7 @@ param_or_empty(K, "").
 :- source_query(Source, Query), assertz(source(Source)), assertz(query(Query)).
 ?>
 <body>
-<h2>Trealla Playground</h2>
+<h2>Scryer Playground</h2>
 <p>Run Prolog in your browser. Press escape then tab to escape the text editor.</p>
 <section id="tinker" style="text-align: right;">
 	<div>
@@ -167,9 +167,9 @@ param_or_empty(K, "").
 		<span id="shared"></span>
 	</div>
 	<div>
-		<label for="format">format:</label> <select id="format">
-			<option value="prolog" selected>prolog</option>
-			<option value="json">json</option>
+		<label for="format">format:</label> <select id="format" disabled>
+			<!-- <option value="prolog">prolog</option> -->
+			<option value="json" selected>json</option>
 		</select>
 		<button onmousedown="return resetProlog(),false;">Reset Interpreter</button> <br>
 	</div>
@@ -199,13 +199,13 @@ mortal(X) :- person(X)."><?=X source(X). ?></textarea><br>
 <section>
 	<h2>More Info</h2>
 	<ul>
-		<li><a href="https://github.com/trealla-prolog/trealla">Trealla Prolog</a></li>
+		<li><a href="https://github.com/mthom/scryer-prolog">Scryer Prolog</a></li>
 		<li>
-			<a href="https://github.com/guregu/trealla-js">trealla-js</a>
+			<a href="https://github.com/guregu/scryer-js">scryer-js</a>
 			<ul>
 			<?if npm_version(V). ?>
 				<li>
-					currently using version: <a href="https://www.npmjs.com/package/trealla/v/<?=V ?>" target="_blank"><?=V ?></a>
+					currently using version: <a href="https://www.npmjs.com/package/scryer/v/<?=V ?>" target="_blank"><?=V ?></a>
 				</li>
 				<li>
 					<form action="" method="GET" target="_blank">
@@ -217,33 +217,26 @@ mortal(X) :- person(X)."><?=X source(X). ?></textarea><br>
 						<input type="submit" value="Go">
 					</form>
 				</li>
-				<li><a href="https://www.npmjs.com/package/trealla?activeTab=versions" target="_blank">all versions</a></li>
+				<li><a href="https://www.npmjs.com/package/scryer?activeTab=versions" target="_blank">all versions</a></li>
 			<?end ?>
 			</ul>
 		</li>
 	</ul>
 	<br>
-	<!--
-	<img src="/assets/trealla.png">
-	-->
 </section>
 
-<footer>
-powered by <a href="https://github.com/trealla-prolog/trealla">Trealla Prolog</a>
-</footer>
-
 <script type="module">
-import { load, Prolog, toJSON, FORMATS } from 'https://esm.sh/trealla@<?=V npm_version(V). ?>?target=es2022';
+import { init, Prolog } from 'https://esm.sh/scryer@<?=V npm_version(V). ?>?target=es2022';
 
 try {
-	load().then(init);
+	init().then(init2);
 } catch(err) {
 	alert(err);
 }
 
 let pl = null;
 
-function init() {
+function init2() {
 	try {
 		pl = new Prolog();
 	} catch(err) {
@@ -315,7 +308,7 @@ document.addEventListener("keyup", function(event) {
 
 window.resetProlog = function() {
 	prevSrc = undefined;
-	init();
+	init2();
 }
 
 window.ask = async function ask() {
@@ -327,30 +320,6 @@ window.ask = async function ask() {
 	}
 }
 
-class Toplevel {
-	id;
-	dec;
-	constructor(id) {
-		this.id = id;
-		this.dec = new TextDecoder();
-	}
-	query(_, goal, bind) {
-		return FORMATS.prolog.query(null, goal, bind);
-	}
-	parse(pl, status, stdout, stderr, options) {
-		return {
-			'$format': 'custom',
-			id: this.id,
-			status,
-			stdout: FORMATS.prolog.parse(pl, status, stdout, stderr, options),
-			stderr: this.dec.decode(stderr)
-		};
-	}
-	truth(pl, status, stderr, options) {
-		return {'$format': 'custom', id: this.id, status, stdout: status ? "true" : "false", stderr: this.dec.decode(stderr)};
-	}
-}
-
 let ID = 0;
 let prevSrc;
 async function run() {
@@ -358,14 +327,14 @@ async function run() {
 	const query = getQuery();
 	const src = document.getElementById("src").value;
 	const format = document.getElementById("format").value;
-	const toplevel = format == "prolog" ? new Toplevel(id) : format;
 
 	const elem = document.getElementById("query-tmpl").content.cloneNode(true);
 	const box = elem.querySelector(".query-box");
 	box.id = `query-${id}`;
 	box.dataset.id = id;
 	box.dataset.format = format;
-	elem.querySelector(".query-result").textContent = "?- " + query + "\n";
+	const resultText = elem.querySelector(".query-result");
+	resultText.textContent = "?- " + query + "\n";
 	elem.querySelector(".query-next").onmousedown = next.bind(elem, id);
 	elem.querySelector(".query-all").onmousedown = all.bind(elem, id);
 	elem.querySelector(".query-stop").onmousedown = stop.bind(elem, id);
@@ -374,11 +343,20 @@ async function run() {
 	let text = "?- " + query + "\n";
 	let n = 0;
 	const encode = format == "prolog" ? {dot: false} : undefined;
-	const q = pl.query(query, {program: src === prevSrc ? undefined : src, format: toplevel, encode: encode});
-	QUERIES[id] = q;
-
-	await next(id);
-	prevSrc = src;
+	
+	try {
+		if (src !== prevSrc) {
+			pl.consultText(src, "user");
+			prevSrc = src;
+		}
+		const q = pl.query(query);
+		QUERIES[id] = q;
+	
+		await next(id);
+	} catch (ex) {
+		resultText.textContent += `JS threw exception: ${ex} ${ex?.cause ?? ""}\n`
+		box.dataset.state = "done";
+	}
 }
 
 function getQuery() {
@@ -435,7 +413,7 @@ async function redo(id, elem) {
 	else if ('$format' in result) {
 		stdout.textContent += `${(n > 0 ? "\n" : "") + result.stderr.trim()}${(!!result.stderr ? "\n" : "") + (n > 0 ? ";  " : "   ") + result.stdout.trim()}`;
 	} else {
-		stdout.textContent += toJSON(result, " ") + "\n";
+		stdout.textContent += JSON.stringify(result?.bindings ?? result, " ") + "\n";
 	}
 	elem.dataset.n = n+1;
 	return true;
@@ -476,7 +454,7 @@ window.shareCode = async function(elem) {
 	const data = new FormData();
 	data.append("src", src.value);
 	data.append("q", query.value);
-	data.append("flavor", "trealla");
+	data.append("flavor", "scryer");
 	try {
 		shared.textContent = "⏳";
 		const got = await fetch("/playground_share.html", {
