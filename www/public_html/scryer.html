@@ -1,5 +1,13 @@
 <!doctype html>
 <html>
+<?
+% version management
+
+default_version("0.5.0").
+
+npm_version(V) :- query_param(tpl, V).
+npm_version(V) :- default_version(V).
+?>
 <head>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Scryer Prolog playground</title>
@@ -128,12 +136,6 @@
 	</style>
 </head>
 <?
-% version management
-
-default_version("0.4.1").
-
-npm_version(V) :- query_param(tpl, V).
-npm_version(V) :- default_version(V).
 
 % sharing function
 
@@ -221,6 +223,7 @@ mortal(X) :- person(X)."><?=X source(X). ?></textarea><br>
 			<?end ?>
 			</ul>
 		</li>
+		<li><a href="https://play.scryer.pl/">Better playground</a></li>
 	</ul>
 	<br>
 </section>

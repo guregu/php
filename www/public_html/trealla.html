@@ -1,5 +1,13 @@
 <!doctype html>
 <html>
+<?
+% trealla-js version management
+
+default_version("0.27.1").
+
+npm_version(V) :- query_param(tpl, V).
+npm_version(V) :- default_version(V).
+?>
 <head>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Trealla Prolog playground</title>
@@ -128,13 +136,6 @@
 	</style>
 </head>
 <?
-% trealla-js version management
-
-default_version("0.22.4").
-
-npm_version(V) :- query_param(tpl, V).
-npm_version(V) :- default_version(V).
-
 % sharing function
 
 source_query(Src, Q) :-
@@ -233,7 +234,7 @@ powered by <a href="https://github.com/trealla-prolog/trealla">Trealla Prolog</a
 </footer>
 
 <script type="module">
-import { load, Prolog, toJSON, FORMATS } from 'https://esm.sh/trealla@<?=V npm_version(V). ?>?target=es2022';
+import { load, Prolog, toJSON, FORMATS } from 'https://esm.run/trealla@<?=V npm_version(V). ?>';
 
 try {
 	load().then(init);
